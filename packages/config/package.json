@@ -1,0 +1,10 @@
+{
+  "name": "@99billiards/config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./load-env": "./src/load-env.ts"
+  }
+}
