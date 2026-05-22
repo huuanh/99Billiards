@@ -55,7 +55,6 @@ export interface Post {
 export interface SiteSettings {
   siteName: string;
   heroImage?: string;
-  heroCardImage?: string;
   gaId?: string;
   metaPixelId?: string;
   tiktokPixelId?: string;
@@ -307,7 +306,6 @@ export const posts: Post[] = [
 export const siteSettings: SiteSettings = {
   siteName: "99 Billiards",
   heroImage: "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=2200&q=80",
-  heroCardImage: "https://images.unsplash.com/photo-1541305678321-60de370004b7?auto=format&fit=crop&w=1200&q=80",
   defaultSeoTitle: "99 Billiards - Chuỗi billiards hiện đại tại Hà Nội",
   defaultSeoDescription:
     "Xem cơ sở, ưu đãi, tin tức và đặt bàn nhanh tại hệ thống 99 Billiards Club.",

@@ -17,7 +17,6 @@ export default async function SettingsPage() {
           <section className="grid gap-4 rounded-lg border border-[#dfe3d8] bg-[#f8faf5] p-4">
             <Input name="siteName" label="Tên website" defaultValue={settings.siteName} />
             <ImageUploadField name="heroImage" label="Ảnh hero homepage" defaultValue={settings.heroImage} />
-            <ImageUploadField name="heroCardImage" label="Ảnh card hero homepage" defaultValue={settings.heroCardImage} />
           </section>
 
           <section className="grid gap-4 rounded-lg border border-[#dfe3d8] bg-[#f8faf5] p-4 md:grid-cols-3">

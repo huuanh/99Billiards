@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { loginAdmin } from "./actions";
 
 export default function LoginPage({
@@ -9,9 +10,14 @@ export default function LoginPage({
     <main className="grid min-h-screen place-items-center bg-[#071107] px-4 text-white">
       <section className="w-full max-w-md rounded-[2rem] border border-white/10 bg-white p-6 text-[#0a100c] shadow-2xl">
         <div className="flex items-center gap-3">
-          <span className="grid h-12 w-12 place-items-center rounded-full bg-[#d6ff3f] text-xl font-black text-black">
-            99
-          </span>
+          <Image
+            src="/logo.jpg"
+            alt="99 Billiards Club"
+            width={48}
+            height={48}
+            className="h-12 w-12 rounded-full object-cover"
+            priority
+          />
           <div>
             <p className="text-sm font-black uppercase tracking-[0.2em]">Billiards</p>
             <h1 className="text-2xl font-black">Đăng nhập quản trị</h1>

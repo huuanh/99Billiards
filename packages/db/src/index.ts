@@ -139,7 +139,6 @@ const siteSettingSchema = new Schema(
   {
     siteName: String,
     heroImage: String,
-    heroCardImage: String,
     gaId: String,
     metaPixelId: String,
     tiktokPixelId: String,

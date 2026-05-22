@@ -23,7 +23,7 @@ export default async function MediaPage() {
 
         <Panel title="Dùng ảnh trong CMS" subtitle="Upload một lần, copy URL và dán vào đúng trường ảnh.">
           <div className="space-y-3 text-sm leading-6 text-black/70">
-            <p><strong>Homepage:</strong> vào Settings, dán URL vào ảnh hero hoặc ảnh card hero.</p>
+            <p><strong>Homepage:</strong> vào Settings và upload ảnh hero homepage.</p>
             <p><strong>Cơ sở:</strong> dán URL vào ảnh đại diện, gallery URLs, hoặc bản đồ embed.</p>
             <p><strong>Sản phẩm / Ưu đãi / Tin tức:</strong> dán URL vào trường ảnh của từng bảng.</p>
           </div>

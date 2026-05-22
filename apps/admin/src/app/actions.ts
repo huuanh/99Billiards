@@ -494,27 +494,28 @@ export async function updateSiteSettings(
 
   const existing = await SiteSettingModel.findOne().sort({ updatedAt: -1 }).lean();
   const heroImage = value(formData, "heroImage");
-  const heroCardImage = value(formData, "heroCardImage");
 
   try {
     await SiteSettingModel.findOneAndUpdate(
       {},
       {
-        siteName: value(formData, "siteName"),
-        heroImage,
-        heroCardImage,
-        gaId: value(formData, "gaId"),
-        metaPixelId: value(formData, "metaPixelId"),
-        tiktokPixelId: value(formData, "tiktokPixelId"),
-        defaultSeoTitle: value(formData, "defaultSeoTitle"),
-        defaultSeoDescription: value(formData, "defaultSeoDescription"),
+        $set: {
+          siteName: value(formData, "siteName"),
+          heroImage,
+          gaId: value(formData, "gaId"),
+          metaPixelId: value(formData, "metaPixelId"),
+          tiktokPixelId: value(formData, "tiktokPixelId"),
+          defaultSeoTitle: value(formData, "defaultSeoTitle"),
+          defaultSeoDescription: value(formData, "defaultSeoDescription"),
+        },
+        $unset: { heroCardImage: "" },
       },
       { upsert: true, new: true },
     );
 
     await cleanupRemovedMedia(
       [String(existing?.heroImage || ""), String(existing?.heroCardImage || "")],
-      [heroImage, heroCardImage],
+      [heroImage],
     );
     revalidateAdminAndPublic("/settings");
     return success("Da luu settings.");

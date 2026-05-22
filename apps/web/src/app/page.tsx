@@ -4,6 +4,7 @@ import { getBranches, getPosts, getProducts, getPromotions, getSiteSettings } fr
 import type { Branch, Post, Product, Promotion } from "@99billiards/db/seed";
 import { siteConfig } from "@99billiards/config";
 import { formatCurrency } from "@99billiards/ui";
+import { BilliardsHero3D } from "@/components/billiards-hero-3d";
 import { BookingModal } from "@/components/booking-modal";
 import { MobileStickyActions } from "@/components/mobile-sticky-actions";
 
@@ -54,9 +55,13 @@ export default async function Home() {
         <header className="fixed left-0 right-0 top-0 z-30 border-b border-white/10 bg-black/45 backdrop-blur-xl">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6">
             <Link href="#home" className="focus-ring flex items-center gap-3 rounded-full">
-              <span className="grid h-11 w-11 place-items-center rounded-full bg-[#d6ff3f] text-lg font-black text-black">
-                99
-              </span>
+              <Image
+                src="/logo.jpg"
+                alt="99 Billiards Club"
+                width={44}
+                height={44}
+                className="h-11 w-11 rounded-full border border-[#d6ff3f]/40 object-cover"
+              />
               <span className="hidden text-sm font-black uppercase tracking-[0.24em] md:block">
                 Billiards Club
               </span>
@@ -77,8 +82,10 @@ export default async function Home() {
           </div>
         </header>
 
-        <div className="relative mx-auto grid min-h-screen max-w-7xl items-center gap-10 px-4 pb-16 pt-28 md:px-6 lg:grid-cols-[1.08fr_0.92fr]">
-          <div>
+        <BilliardsHero3D />
+
+        <div className="pointer-events-none relative z-10 mx-auto grid min-h-screen max-w-7xl items-center gap-10 px-4 pb-16 pt-[46vh] md:px-6 md:pt-28 lg:grid-cols-[1.08fr_0.92fr]">
+          <div className="pointer-events-auto">
             <p className="text-xs font-black uppercase tracking-[0.42em] text-[#d6ff3f]">
               Chuỗi billiards hiện đại tại Hà Nội
             </p>
@@ -104,32 +111,6 @@ export default async function Home() {
               >
                 Đặt bàn ngay
               </Link>
-            </div>
-          </div>
-
-          <div className="glass relative rounded-[2rem] p-5">
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                [`${branches.length}+`, "cơ sở"],
-                ["24/24", "giờ mở"],
-                ["Live", "kèo hot"],
-              ].map(([value, label]) => (
-                <div key={label} className="rounded-3xl bg-white/8 p-4 text-center">
-                  <div className="text-2xl font-black text-[#d6ff3f] md:text-4xl">{value}</div>
-                  <div className="mt-1 text-xs uppercase tracking-[0.2em] text-white/55">
-                    {label}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-5 overflow-hidden rounded-[1.5rem] border border-white/10">
-              <Image
-                src={settings.heroCardImage || "https://images.unsplash.com/photo-1541305678321-60de370004b7?auto=format&fit=crop&w=1200&q=80"}
-                alt="Bàn billiards"
-                width={900}
-                height={700}
-                className="aspect-[4/3] w-full object-cover"
-              />
             </div>
           </div>
         </div>

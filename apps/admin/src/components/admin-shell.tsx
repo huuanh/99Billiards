@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { logoutAdmin } from "@/app/login/actions";
 import { requireAdmin } from "@/lib/auth";
 
@@ -34,9 +35,14 @@ export async function AdminShell({
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-[#dfe3d8] bg-[#0b120d] text-white lg:block">
         <div className="border-b border-white/10 px-5 py-4">
           <Link href="/" className="focus-ring flex items-center gap-3 rounded-lg">
-            <span className="grid h-10 w-10 place-items-center rounded-lg bg-[#d6ff3f] text-lg font-black text-black">
-              99
-            </span>
+            <Image
+              src="/logo.jpg"
+              alt="99 Billiards Club"
+              width={40}
+              height={40}
+              className="h-10 w-10 rounded-lg object-cover"
+              priority
+            />
             <div>
               <p className="text-sm font-black uppercase tracking-[0.18em]">Billiards</p>
               <p className="text-[11px] uppercase tracking-[0.16em] text-white/45">Operations</p>

@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   title: "99 Billiards - Chơi là cuốn",
   description:
     "Website chính thức của chuỗi 99 Billiards Club. Xem cơ sở, ưu đãi, sản phẩm và đặt bàn nhanh.",
+  icons: {
+    icon: "/logo.jpg",
+    apple: "/logo.jpg",
+  },
 };
 
 export const dynamic = "force-dynamic";
