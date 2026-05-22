@@ -1,29 +1,63 @@
-import { createUploadUrl } from "@99billiards/db/r2";
-import { getAdminSession } from "@/lib/auth";
+import { MediaAssetModel, connectDb } from "@99billiards/db";
+import { uploadObject } from "@99billiards/db/r2";
 import { NextResponse } from "next/server";
+import { getAdminSession } from "@/lib/auth";
+
+export const runtime = "nodejs";
+
+const maxFileSize = 10 * 1024 * 1024;
+
+function sanitizeFilename(filename: string) {
+  const cleaned = filename
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return cleaned || "image";
+}
 
 export async function POST(request: Request) {
-  if (!(await getAdminSession())) {
+  const session = await getAdminSession();
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json().catch(() => null);
-  const filename = String(body?.filename || "asset").replace(/[^a-zA-Z0-9._-]/g, "-");
-  const contentType = String(body?.contentType || "application/octet-stream");
-  const key = `uploads/${Date.now()}-${filename}`;
-
   try {
-    const result = await createUploadUrl(key, contentType);
-    return NextResponse.json(result);
+    const formData = await request.formData();
+    const file = formData.get("file");
+
+    if (!(file instanceof File) || file.size === 0) {
+      return NextResponse.json({ error: "Vui long chon file anh." }, { status: 400 });
+    }
+
+    if (!file.type.startsWith("image/")) {
+      return NextResponse.json({ error: "Chi ho tro upload file anh." }, { status: 400 });
+    }
+
+    if (file.size > maxFileSize) {
+      return NextResponse.json({ error: "Anh toi da 10MB." }, { status: 400 });
+    }
+
+    const filename = sanitizeFilename(file.name);
+    const key = `uploads/${Date.now()}-${crypto.randomUUID()}-${filename}`;
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const publicUrl = await uploadObject(key, buffer, file.type || "application/octet-stream");
+
+    if (await connectDb()) {
+      await MediaAssetModel.create({
+        filename: file.name,
+        url: publicUrl,
+        contentType: file.type,
+        size: file.size,
+        source: "r2",
+      });
+    }
+
+    return NextResponse.json({ ok: true, publicUrl });
   } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "R2 upload is not configured. Add R2 env vars first.",
-      },
-      { status: 400 },
-    );
+    console.error("Upload failed", error);
+    return NextResponse.json({ error: "Upload len R2 chua thanh cong." }, { status: 500 });
   }
 }

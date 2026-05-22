@@ -10,8 +10,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
   }
 
-  const connection = await connectDb();
+  const connection = await connectDb().catch((error) => {
+    console.error("Booking DB connection failed", error);
+    return null;
+  });
   if (!connection) {
+    if (process.env.NODE_ENV === "production") {
+      return NextResponse.json(
+        { error: "Booking service is temporarily unavailable" },
+        { status: 503 },
+      );
+    }
+
     return NextResponse.json({
       ok: true,
       preview: true,

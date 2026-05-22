@@ -8,7 +8,13 @@ declare global {
 
 export async function connectDb() {
   const uri = process.env.MONGODB_URI;
+  const isProductionRuntime =
+    process.env.NODE_ENV === "production" && process.env.NEXT_PHASE !== "phase-production-build";
+
   if (!uri) {
+    if (isProductionRuntime) {
+      throw new Error("MONGODB_URI is required in production");
+    }
     return null;
   }
 
@@ -23,6 +29,9 @@ export async function connectDb() {
       .catch((error) => {
         console.warn(`MongoDB connection failed: ${error.message}`);
         global.mongooseConnection = undefined;
+        if (isProductionRuntime) {
+          throw error;
+        }
         return null as unknown as typeof mongoose;
       });
   }
@@ -178,7 +187,7 @@ function normalizeRows<T extends { _id?: unknown; id?: string; code?: string }>(
 export async function getBranches() {
   if (!(await connectDb())) return branches;
   const docs = await BranchModel.find().sort({ sortOrder: 1, createdAt: -1 }).lean();
-  return docs.length ? normalizeRows(plain(docs)) : branches;
+  return normalizeRows(plain(docs));
 }
 
 export async function getBranchById(id: string) {
@@ -189,13 +198,13 @@ export async function getBranchById(id: string) {
 export async function getProducts() {
   if (!(await connectDb())) return products;
   const docs = await ProductModel.find({ status: "published" }).sort({ createdAt: -1 }).lean();
-  return docs.length ? normalizeRows(plain(docs)) : products;
+  return normalizeRows(plain(docs));
 }
 
 export async function getPromotions() {
   if (!(await connectDb())) return promotions;
   const docs = await PromotionModel.find({ status: "published" }).sort({ createdAt: -1 }).lean();
-  return docs.length ? normalizeRows(plain(docs)) : promotions;
+  return normalizeRows(plain(docs));
 }
 
 export async function getPromotionById(id: string) {
@@ -206,7 +215,7 @@ export async function getPromotionById(id: string) {
 export async function getPosts() {
   if (!(await connectDb())) return posts;
   const docs = await PostModel.find({ status: "published" }).sort({ publishedAt: -1 }).lean();
-  return docs.length ? normalizeRows(plain(docs)) : posts;
+  return normalizeRows(plain(docs));
 }
 
 export async function getPostById(id: string) {
@@ -230,14 +239,7 @@ export async function getSiteSettings() {
   }
 
   const doc = await SiteSettingModel.findOne().sort({ updatedAt: -1 }).lean();
-  return doc
-    ? plain(doc)
-    : {
-        ...siteSettings,
-        gaId: process.env.NEXT_PUBLIC_GA_ID || siteSettings.gaId,
-        metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID || siteSettings.metaPixelId,
-        tiktokPixelId: process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID || siteSettings.tiktokPixelId,
-      };
+  return doc ? plain(doc) : {};
 }
 
 export async function getMediaAssets() {

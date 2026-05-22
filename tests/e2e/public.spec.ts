@@ -1,4 +1,13 @@
 import { expect, test } from "@playwright/test";
+import mongoose from "mongoose";
+
+async function cleanupBooking(id?: string) {
+  if (!id || !process.env.MONGODB_URI) return;
+
+  await mongoose.connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 5000 });
+  await mongoose.connection.collection("bookings").deleteOne({ _id: new mongoose.Types.ObjectId(id) });
+  await mongoose.disconnect();
+}
 
 test.describe("public website", () => {
   test("renders homepage and opens booking modal", async ({ page }) => {
@@ -13,7 +22,7 @@ test.describe("public website", () => {
     await expect(page.getByLabel("Số điện thoại")).toBeVisible();
   });
 
-  test("booking API accepts valid request", async ({ request }) => {
+  test("booking API accepts valid request", async ({ request }, testInfo) => {
     const response = await request.post("/api/bookings", {
       data: {
         customerName: "Playwright Test",
@@ -22,12 +31,14 @@ test.describe("public website", () => {
         guestCount: 3,
         bookingDate: "2026-05-22",
         bookingTime: "19:30",
-        note: "E2E smoke test",
+        note: `E2E smoke test ${testInfo.project.name}`,
       },
     });
 
     expect(response.ok()).toBeTruthy();
     await expect(response).toBeOK();
+    const body = await response.json().catch(() => null);
+    await cleanupBooking(body?.id);
   });
 
   test("renders SEO detail pages", async ({ page }) => {

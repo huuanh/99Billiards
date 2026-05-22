@@ -1,5 +1,4 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { r2Config } from "@99billiards/config";
 
 export function getR2Client() {
@@ -17,21 +16,48 @@ export function getR2Client() {
   });
 }
 
-export async function createUploadUrl(key: string, contentType: string) {
+export async function uploadObject(key: string, body: Buffer, contentType: string) {
   const client = getR2Client();
   if (!client || !r2Config.bucket || !r2Config.publicBaseUrl) {
     throw new Error("R2 is not configured");
   }
 
-  const command = new PutObjectCommand({
-    Bucket: r2Config.bucket,
-    Key: key,
-    ContentType: contentType,
-  });
+  await client.send(
+    new PutObjectCommand({
+      Bucket: r2Config.bucket,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+    }),
+  );
 
-  const uploadUrl = await getSignedUrl(client, command, { expiresIn: 60 });
-  return {
-    uploadUrl,
-    publicUrl: `${r2Config.publicBaseUrl.replace(/\/$/, "")}/${key}`,
-  };
+  return `${r2Config.publicBaseUrl.replace(/\/$/, "")}/${key}`;
+}
+
+export function getR2KeyFromPublicUrl(url: string) {
+  if (!r2Config.publicBaseUrl) return null;
+
+  const baseUrl = r2Config.publicBaseUrl.replace(/\/$/, "");
+  if (!url.startsWith(`${baseUrl}/`)) return null;
+
+  return decodeURIComponent(url.slice(baseUrl.length + 1));
+}
+
+export async function deleteObjectByPublicUrl(url: string) {
+  const key = getR2KeyFromPublicUrl(url);
+  if (!key) return false;
+
+  const client = getR2Client();
+  if (!client || !r2Config.bucket) {
+    throw new Error("R2 is not configured");
+  }
+
+  await client.send(
+    new DeleteObjectCommand({
+      Bucket: r2Config.bucket,
+      Key: key,
+    }),
+  );
+
+  return true;
 }

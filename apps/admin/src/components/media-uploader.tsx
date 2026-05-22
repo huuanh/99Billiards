@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 
-interface UploadResult {
-  uploadUrl: string;
+interface UploadPayload {
   publicUrl: string;
+  error?: string;
 }
 
 export function MediaUploader() {
@@ -15,7 +15,7 @@ export function MediaUploader() {
   async function upload(formData: FormData) {
     const file = formData.get("file");
     if (!(file instanceof File) || file.size === 0) {
-      setError("Vui lòng chọn một file ảnh.");
+      setError("Vui long chon mot file anh.");
       return;
     }
 
@@ -24,45 +24,22 @@ export function MediaUploader() {
     setPublicUrl("");
 
     try {
-      const signedResponse = await fetch("/api/uploads", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          filename: file.name,
-          contentType: file.type || "application/octet-stream",
-        }),
-      });
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", file);
 
-      const signedPayload = await signedResponse.json();
-      if (!signedResponse.ok) {
-        throw new Error(signedPayload.error || "Không tạo được upload URL.");
+      const response = await fetch("/api/uploads", {
+        method: "POST",
+        body: uploadFormData,
+      });
+      const payload = (await response.json()) as UploadPayload;
+
+      if (!response.ok) {
+        throw new Error(payload.error || "Upload len R2 chua thanh cong.");
       }
 
-      const uploadData = signedPayload as UploadResult;
-      const uploadResponse = await fetch(uploadData.uploadUrl, {
-        method: "PUT",
-        headers: { "Content-Type": file.type || "application/octet-stream" },
-        body: file,
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error("Upload lên R2 chưa thành công.");
-      }
-
-      await fetch("/api/media-assets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          filename: file.name,
-          url: uploadData.publicUrl,
-          contentType: file.type,
-          size: file.size,
-        }),
-      });
-
-      setPublicUrl(uploadData.publicUrl);
+      setPublicUrl(payload.publicUrl);
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "Upload lỗi.");
+      setError(uploadError instanceof Error ? uploadError.message : "Upload loi.");
     } finally {
       setIsUploading(false);
     }
@@ -71,7 +48,7 @@ export function MediaUploader() {
   return (
     <form action={upload} className="grid gap-4">
       <label className="grid gap-2 text-sm font-bold">
-        Chọn ảnh
+        Chon anh
         <input
           name="file"
           type="file"
@@ -83,7 +60,7 @@ export function MediaUploader() {
         disabled={isUploading}
         className="focus-ring min-h-11 rounded-2xl bg-[#d6ff3f] px-5 py-3 text-sm font-black uppercase tracking-[0.18em] text-black disabled:opacity-60"
       >
-        {isUploading ? "Đang upload..." : "Upload lên R2"}
+        {isUploading ? "Dang upload..." : "Upload qua server"}
       </button>
 
       {error ? (
@@ -94,7 +71,7 @@ export function MediaUploader() {
 
       {publicUrl ? (
         <div className="rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-900">
-          <p className="font-black">Upload xong. Dùng URL này cho trường ảnh:</p>
+          <p className="font-black">Upload xong. URL anh:</p>
           <input
             readOnly
             value={publicUrl}

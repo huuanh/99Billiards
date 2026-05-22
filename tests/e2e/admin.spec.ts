@@ -1,5 +1,8 @@
 import { expect, test } from "@playwright/test";
 
+const adminEmail = process.env.ADMIN_EMAIL || "admin@99billiards.local";
+const adminPassword = process.env.ADMIN_PASSWORD || "99billiards";
+
 test.describe("admin cms", () => {
   test("redirects unauthenticated users to login", async ({ page }) => {
     await page.context().clearCookies();
@@ -9,8 +12,8 @@ test.describe("admin cms", () => {
 
   test.beforeEach(async ({ page }) => {
     await page.goto("/login");
-    await page.getByLabel("Email").fill("admin@99billiards.local");
-    await page.getByLabel("Mật khẩu").fill("99billiards");
+    await page.getByLabel("Email").fill(adminEmail);
+    await page.getByLabel("Mật khẩu").fill(adminPassword);
     await page.getByRole("button", { name: "Vào admin" }).click();
     await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   });
@@ -19,8 +22,8 @@ test.describe("admin cms", () => {
     await page.goto("/");
 
     await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
-    await page.getByRole("link", { name: "Cơ sở" }).click();
-    await expect(page.getByRole("heading", { name: "Cơ sở" })).toBeVisible();
+    await page.locator('a[href="/branches"]').first().click();
+    await expect(page.getByRole("heading", { name: "Cơ sở", exact: true })).toBeVisible();
     await expect(page.getByRole("table")).toBeVisible();
   });
 

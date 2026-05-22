@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+.git
+.gitignore
+.codex-run
+node_modules
+apps/*/.next
+playwright-report
+test-results
+output
+*.log
+Dockerfile
+docker-compose*.yml
+docker/nginx/*.conf

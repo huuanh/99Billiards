@@ -1,4 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
+import { loadRootEnv } from "./packages/config/src/load-env";
+
+loadRootEnv();
 
 export default defineConfig({
   testDir: "./tests/e2e",

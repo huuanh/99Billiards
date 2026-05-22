@@ -20,6 +20,8 @@ export const metadata: Metadata = {
     "Website chính thức của chuỗi 99 Billiards Club. Xem cơ sở, ưu đãi, sản phẩm và đặt bàn nhanh.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function RootLayout({
   children,
 }: Readonly<{
