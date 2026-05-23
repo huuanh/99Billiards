@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { branches, posts, products, promotions, siteSettings } from "./seed";
+import { branches, postCategories, posts, products, promotions, siteSettings } from "./seed";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -76,12 +76,14 @@ const productSchema = new Schema(
     price: Number,
     image: String,
     description: String,
+    branchIds: [String],
     featured: Boolean,
     status: { type: String, default: "published" },
   },
   { timestamps: true },
 );
 productSchema.index({ category: 1, status: 1 });
+productSchema.index({ branchIds: 1 });
 productSchema.index({ name: "text", description: "text" });
 
 const promotionSchema = new Schema(
@@ -109,6 +111,9 @@ const postSchema = new Schema(
     excerpt: String,
     category: String,
     content: String,
+    contentFormat: { type: String, enum: ["plain", "tiptap"], default: "plain" },
+    contentJson: Schema.Types.Mixed,
+    contentText: String,
     publishedAt: String,
     image: String,
     status: { type: String, default: "published" },
@@ -116,7 +121,21 @@ const postSchema = new Schema(
   { timestamps: true },
 );
 postSchema.index({ status: 1, publishedAt: -1 });
-postSchema.index({ title: "text", excerpt: "text", content: "text" });
+postSchema.index({ title: "text", excerpt: "text", content: "text", contentText: "text" });
+
+const postCategorySchema = new Schema(
+  {
+    id: String,
+    slug: String,
+    name: String,
+    description: String,
+    status: { type: String, enum: ["active", "hidden"], default: "active" },
+    sortOrder: Number,
+  },
+  { timestamps: true },
+);
+postCategorySchema.index({ slug: 1 }, { unique: true, sparse: true });
+postCategorySchema.index({ status: 1, sortOrder: 1 });
 
 const bookingSchema = new Schema(
   {
@@ -165,6 +184,8 @@ export const ProductModel = mongoose.models.Product || mongoose.model("Product",
 export const PromotionModel =
   mongoose.models.Promotion || mongoose.model("Promotion", promotionSchema);
 export const PostModel = mongoose.models.Post || mongoose.model("Post", postSchema);
+export const PostCategoryModel =
+  mongoose.models.PostCategory || mongoose.model("PostCategory", postCategorySchema);
 export const BookingModel = mongoose.models.Booking || mongoose.model("Booking", bookingSchema);
 export const SiteSettingModel =
   mongoose.models.SiteSetting || mongoose.model("SiteSetting", siteSettingSchema);
@@ -200,9 +221,21 @@ export async function getProducts() {
   return normalizeRows(plain(docs));
 }
 
+export async function getAdminProducts() {
+  if (!(await connectDb())) return products;
+  const docs = await ProductModel.find().sort({ createdAt: -1 }).lean();
+  return normalizeRows(plain(docs));
+}
+
 export async function getPromotions() {
   if (!(await connectDb())) return promotions;
   const docs = await PromotionModel.find({ status: "published" }).sort({ createdAt: -1 }).lean();
+  return normalizeRows(plain(docs));
+}
+
+export async function getAdminPromotions() {
+  if (!(await connectDb())) return promotions;
+  const docs = await PromotionModel.find().sort({ createdAt: -1 }).lean();
   return normalizeRows(plain(docs));
 }
 
@@ -217,9 +250,43 @@ export async function getPosts() {
   return normalizeRows(plain(docs));
 }
 
+export async function getAdminPosts() {
+  if (!(await connectDb())) return posts;
+  const docs = await PostModel.find().sort({ publishedAt: -1, createdAt: -1 }).lean();
+  return normalizeRows(plain(docs));
+}
+
+export async function getPostCategories({ includeHidden = false } = {}) {
+  if (!(await connectDb())) return includeHidden ? postCategories : postCategories.filter((category) => category.status !== "hidden");
+
+  const filter = includeHidden ? {} : { status: "active" };
+  const docs = await PostCategoryModel.find(filter).sort({ sortOrder: 1, name: 1 }).lean();
+  if (docs.length) return normalizeRows(plain(docs));
+
+  const distinctCategories = await PostModel.distinct("category", { category: { $type: "string", $ne: "" } });
+  if (distinctCategories.length) {
+    return distinctCategories
+      .sort((first, second) => String(first).localeCompare(String(second), "vi"))
+      .map((name, index) => ({
+        id: String(name).toLowerCase().replace(/\s+/g, "-"),
+        slug: String(name).toLowerCase().replace(/\s+/g, "-"),
+        name: String(name),
+        status: "active",
+        sortOrder: index + 1,
+      }));
+  }
+
+  return includeHidden ? postCategories : postCategories.filter((category) => category.status !== "hidden");
+}
+
 export async function getPostById(id: string) {
   const rows = await getPosts();
   return rows.find((post) => post.id === id) || null;
+}
+
+export async function getAdminPostById(id: string) {
+  const rows = await getAdminPosts();
+  return rows.find((post) => post.id === id || post._id === id) || null;
 }
 
 export async function getBookings() {

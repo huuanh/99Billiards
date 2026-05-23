@@ -1,18 +1,28 @@
-import { getPosts } from "@99billiards/db";
-import type { Post } from "@99billiards/db/seed";
+import Link from "next/link";
+import { getAdminPosts, getPostCategories } from "@99billiards/db";
+import type { Post, PostCategory } from "@99billiards/db/seed";
 import { createPost, deletePost, updatePost } from "../actions";
 import { AdminShell, Input, Panel, SaveButton, Select, StatusPill, Textarea } from "@/components/admin-shell";
 import { AdminActionForm } from "@/components/admin-action-form";
 import { FormModal } from "@/components/admin-modal";
 import { ImageUploadField } from "@/components/image-upload-field";
+import { PostContentEditor } from "@/components/post-content-editor";
 
 interface AdminPost extends Post {
   _id?: string;
-  status?: string;
+  status?: "published" | "draft";
+  contentFormat?: "plain" | "tiptap";
+  contentJson?: unknown;
+  contentText?: string;
 }
 
-function PostForm({ post }: { post?: AdminPost }) {
+interface AdminPostCategory extends PostCategory {
+  _id?: string;
+}
+
+function PostForm({ post, categories }: { post?: AdminPost; categories: AdminPostCategory[] }) {
   const isEditing = Boolean(post?._id);
+  const categoryOptions = categories.map((category) => category.name);
 
   return (
     <AdminActionForm action={isEditing ? updatePost : createPost} closeModalOnSuccess>
@@ -22,22 +32,39 @@ function PostForm({ post }: { post?: AdminPost }) {
         <h3 className="text-base font-black">Thông tin bài viết</h3>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <Input name="title" label="Tiêu đề" placeholder="Lịch livestream cuối tuần" defaultValue={post?.title} />
-          <Input name="category" label="Chuyên mục" placeholder="Livestream" defaultValue={post?.category} />
-          <Input name="publishedAt" label="Ngày đăng" placeholder="2026-05-21" defaultValue={post?.publishedAt} />
-          {isEditing ? (
+          {categoryOptions.length ? (
             <Select
-              name="status"
-              label="Trạng thái"
-              options={["published", "draft"]}
-              defaultValue={post?.status || "published"}
+              name="category"
+              label="Chuyên mục"
+              options={categoryOptions}
+              defaultValue={post?.category || categoryOptions[0]}
             />
-          ) : null}
+          ) : (
+            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-bold text-amber-800">
+              Chưa có chuyên mục. Hãy tạo chuyên mục trước khi viết bài.
+            </div>
+          )}
+          <Input name="publishedAt" label="Ngày đăng" placeholder="2026-05-21" defaultValue={post?.publishedAt} />
+          <Select
+            name="status"
+            label="Trạng thái"
+            options={["draft", "published"]}
+            defaultValue={post?.status || "draft"}
+          />
           <div className="md:col-span-2">
             <Textarea name="excerpt" label="Tóm tắt" defaultValue={post?.excerpt} />
           </div>
-          <div className="md:col-span-2">
-            <Textarea name="content" label="Nội dung" defaultValue={post?.content} />
-          </div>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-[#dfe3d8] bg-white p-4">
+        <h3 className="text-base font-black">Nội dung bài viết</h3>
+        <div className="mt-4">
+          <PostContentEditor
+            defaultFormat={post?.contentFormat || "plain"}
+            defaultContent={post?.content}
+            defaultContentJson={post?.contentJson}
+          />
         </div>
       </section>
 
@@ -64,7 +91,10 @@ function PostForm({ post }: { post?: AdminPost }) {
 }
 
 export default async function PostsPage() {
-  const posts = (await getPosts()) as AdminPost[];
+  const [posts, categories] = await Promise.all([
+    getAdminPosts() as Promise<AdminPost[]>,
+    getPostCategories() as Promise<AdminPostCategory[]>,
+  ]);
 
   return (
     <AdminShell
@@ -76,7 +106,7 @@ export default async function PostsPage() {
         subtitle={`${posts.length} bài viết đang hiển thị.`}
         aside={
           <FormModal trigger="Thêm bài viết" title="Thêm bài viết" subtitle="Tạo bài viết mới kèm ảnh đại diện." intent="primary">
-            <PostForm />
+            <PostForm categories={categories} />
           </FormModal>
         }
       >
@@ -113,8 +143,14 @@ export default async function PostsPage() {
                     {post._id ? (
                       <div className="flex gap-2">
                         <FormModal trigger="Sửa" title={`Sửa ${post.title}`} subtitle="Cập nhật bài viết và ảnh đại diện.">
-                          <PostForm post={post} />
+                          <PostForm post={post} categories={categories} />
                         </FormModal>
+                        <Link
+                          href={`/posts/${post._id || post.id}`}
+                          className="inline-flex min-h-9 items-center rounded-md border border-[#cfd5c8] bg-white px-3 py-2 text-sm font-bold text-[#111713]"
+                        >
+                          Xem
+                        </Link>
                         <form action={deletePost}>
                           <input type="hidden" name="_id" value={post._id} />
                           <button className="min-h-9 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-bold text-red-700">

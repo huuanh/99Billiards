@@ -9,6 +9,7 @@ const navItems = [
   { label: "Sản phẩm", href: "/products", section: "CMS" },
   { label: "Ưu đãi", href: "/promotions", section: "CMS" },
   { label: "Tin tức", href: "/posts", section: "CMS" },
+  { label: "Chuyên mục tin", href: "/post-categories", section: "CMS" },
   { label: "Đặt bàn", href: "/bookings", section: "Vận hành" },
   { label: "Media", href: "/media", section: "Tài sản" },
   { label: "Settings", href: "/settings", section: "Hệ thống" },

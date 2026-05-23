@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBranches, getPostById, getPromotions } from "@99billiards/db";
 import type { Branch, Post, Promotion } from "@99billiards/db/seed";
+import { ArticleContent } from "@/components/article-content";
 import { BookingModal } from "@/components/booking-modal";
 import { MobileStickyActions } from "@/components/mobile-sticky-actions";
 
@@ -44,13 +45,12 @@ export default async function PostDetailPage({ params }: PageProps) {
           {post.category} · {post.publishedAt}
         </p>
         <h1 className="mt-4 text-5xl font-black md:text-7xl">{post.title}</h1>
-        <p className="mt-6 text-xl leading-9 text-white/72">{post.excerpt}</p>
-        <div className="relative mt-10 aspect-[16/9] overflow-hidden rounded-[1.5rem] border border-white/10">
-          <Image src={post.image} alt={post.title} fill priority className="object-cover" />
-        </div>
-        <div className="mt-10 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-6 text-lg leading-8 text-white/78">
-          {post.content}
-        </div>
+        {post.contentFormat !== "tiptap" && post.image ? (
+          <div className="relative mt-10 aspect-[16/9] overflow-hidden rounded-[1.5rem] border border-white/10">
+            <Image src={post.image} alt={post.title} fill priority className="object-cover" />
+          </div>
+        ) : null}
+        <ArticleContent post={post} />
       </article>
       <div id="booking" />
       <BookingModal branches={branches} promotions={promotions} />

@@ -1,17 +1,28 @@
-import { getPromotions } from "@99billiards/db";
-import type { Promotion } from "@99billiards/db/seed";
-import { createPromotion, deletePromotion, updatePromotion } from "../actions";
-import { AdminShell, Input, Panel, SaveButton, Select, StatusPill, Textarea } from "@/components/admin-shell";
+import { getAdminPromotions, getBranches } from "@99billiards/db";
+import type { Branch, Promotion } from "@99billiards/db/seed";
 import { AdminActionForm } from "@/components/admin-action-form";
 import { FormModal } from "@/components/admin-modal";
+import { AdminShell, Input, Panel, SaveButton, Select, StatusPill, Textarea } from "@/components/admin-shell";
+import { BranchMultiSelect } from "@/components/branch-multi-select";
 import { ImageUploadField } from "@/components/image-upload-field";
+import { createPromotion, deletePromotion, updatePromotion } from "../actions";
 
 interface AdminPromotion extends Promotion {
   _id?: string;
-  status?: string;
+  status?: "published" | "draft";
 }
 
-function PromotionForm({ promotion }: { promotion?: AdminPromotion }) {
+interface AdminBranch extends Branch {
+  _id?: string;
+}
+
+function branchSummary(branchIds: string[] | undefined, branchNames: Map<string, string>) {
+  const ids = branchIds || [];
+  if (!ids.length) return "Toàn hệ thống";
+  return ids.map((id) => branchNames.get(id) || id).join(", ");
+}
+
+function PromotionForm({ promotion, branches }: { promotion?: AdminPromotion; branches: AdminBranch[] }) {
   const isEditing = Boolean(promotion?._id);
 
   return (
@@ -23,15 +34,15 @@ function PromotionForm({ promotion }: { promotion?: AdminPromotion }) {
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <Input name="title" label="Tiêu đề" placeholder="Happy Hour trước 17h" defaultValue={promotion?.title} />
           <Input name="badge" label="Badge" placeholder="-20%" defaultValue={promotion?.badge} />
-          <Input name="branchIds" label="Cơ sở áp dụng" placeholder="cs1, cs2, cs3" defaultValue={(promotion?.branchIds || []).join(", ")} />
-          {isEditing ? (
-            <Select
-              name="status"
-              label="Trạng thái"
-              options={["published", "draft"]}
-              defaultValue={promotion?.status || "published"}
-            />
-          ) : null}
+          <Select
+            name="status"
+            label="Trạng thái"
+            options={["draft", "published"]}
+            defaultValue={promotion?.status || "draft"}
+          />
+          <div className="md:col-span-2">
+            <BranchMultiSelect branches={branches} defaultValues={promotion?.branchIds || []} />
+          </div>
           <div className="md:col-span-2">
             <Textarea name="description" label="Mô tả" defaultValue={promotion?.description} />
           </div>
@@ -64,7 +75,11 @@ function PromotionForm({ promotion }: { promotion?: AdminPromotion }) {
 }
 
 export default async function PromotionsPage() {
-  const promotions = (await getPromotions()) as AdminPromotion[];
+  const [promotions, branches] = await Promise.all([
+    getAdminPromotions() as Promise<AdminPromotion[]>,
+    getBranches() as Promise<AdminBranch[]>,
+  ]);
+  const branchNames = new Map(branches.map((branch) => [branch.id, branch.name]));
 
   return (
     <AdminShell
@@ -73,15 +88,20 @@ export default async function PromotionsPage() {
     >
       <Panel
         title="Bảng ưu đãi"
-        subtitle={`${promotions.length} ưu đãi đang hiển thị.`}
+        subtitle={`${promotions.length} ưu đãi trong CMS.`}
         aside={
-          <FormModal trigger="Thêm ưu đãi" title="Thêm ưu đãi" subtitle="Tạo promotion mới kèm ảnh đại diện." intent="primary">
-            <PromotionForm />
+          <FormModal
+            trigger="Thêm ưu đãi"
+            title="Thêm ưu đãi"
+            subtitle="Ưu đãi mới mặc định là draft, chọn cơ sở áp dụng trước khi publish."
+            intent="primary"
+          >
+            <PromotionForm branches={branches} />
           </FormModal>
         }
       >
         <div className="overflow-auto">
-          <table className="w-full min-w-[900px] text-left text-sm">
+          <table className="w-full min-w-[980px] text-left text-sm">
             <thead className="border-b border-[#e7eadf] text-[11px] uppercase tracking-[0.14em] text-[#657064]">
               <tr>
                 <th className="px-3 py-2">Ảnh</th>
@@ -105,15 +125,15 @@ export default async function PromotionsPage() {
                   </td>
                   <td className="px-3 py-3 font-bold">{promotion.title}</td>
                   <td className="px-3 py-3">{promotion.badge}</td>
-                  <td className="px-3 py-3">{promotion.branchIds.join(", ")}</td>
+                  <td className="max-w-[320px] px-3 py-3 text-[#596256]">{branchSummary(promotion.branchIds, branchNames)}</td>
                   <td className="px-3 py-3">
                     <StatusPill label={promotion.status || "published"} tone={promotion.status === "draft" ? "warning" : "good"} />
                   </td>
                   <td className="px-3 py-3">
                     {promotion._id ? (
                       <div className="flex gap-2">
-                        <FormModal trigger="Sửa" title={`Sửa ${promotion.title}`} subtitle="Cập nhật nội dung và ảnh ưu đãi.">
-                          <PromotionForm promotion={promotion} />
+                        <FormModal trigger="Sửa" title={`Sửa ${promotion.title}`} subtitle="Cập nhật nội dung, cơ sở áp dụng và ảnh ưu đãi.">
+                          <PromotionForm promotion={promotion} branches={branches} />
                         </FormModal>
                         <form action={deletePromotion}>
                           <input type="hidden" name="_id" value={promotion._id} />

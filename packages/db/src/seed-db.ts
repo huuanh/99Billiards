@@ -2,13 +2,14 @@ import { loadRootEnv } from "@99billiards/config/load-env";
 import {
   BranchModel,
   PostModel,
+  PostCategoryModel,
   ProductModel,
   PromotionModel,
   SiteSettingModel,
   MediaAssetModel,
   connectDb,
 } from "./index";
-import { branches, posts, products, promotions, siteSettings } from "./seed";
+import { branches, postCategories, posts, products, promotions, siteSettings } from "./seed";
 
 loadRootEnv();
 
@@ -23,6 +24,7 @@ async function seed() {
     ProductModel.deleteMany({}),
     PromotionModel.deleteMany({}),
     PostModel.deleteMany({}),
+    PostCategoryModel.deleteMany({}),
     SiteSettingModel.deleteMany({}),
     MediaAssetModel.deleteMany({}),
   ]);
@@ -31,6 +33,7 @@ async function seed() {
   await ProductModel.insertMany(products);
   await PromotionModel.insertMany(promotions);
   await PostModel.insertMany(posts);
+  await PostCategoryModel.insertMany(postCategories);
   await SiteSettingModel.create(siteSettings);
 
   await connection.disconnect();

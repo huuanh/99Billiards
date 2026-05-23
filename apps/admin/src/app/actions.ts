@@ -4,6 +4,7 @@ import {
   BookingModel,
   BranchModel,
   MediaAssetModel,
+  PostCategoryModel,
   PostModel,
   ProductModel,
   PromotionModel,
@@ -31,6 +32,16 @@ function csv(formData: FormData, key: string) {
     .filter(Boolean);
 }
 
+function multiValues(formData: FormData, key: string) {
+  const values = formData
+    .getAll(key)
+    .map((item) => String(item || "").trim())
+    .filter(Boolean);
+
+  if (values.length > 1) return values;
+  return values.length === 1 && values[0].includes(",") ? csvValue(values[0]) : values;
+}
+
 const maxImageFileSize = 10 * 1024 * 1024;
 const maxImagePayloadSize = 25 * 1024 * 1024;
 
@@ -43,6 +54,15 @@ function sanitizeFilename(filename: string) {
     .replace(/^-|-$/g, "");
 
   return cleaned || "image";
+}
+
+function slugify(input: string) {
+  return input
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function uniqueUrls(urls: string[]) {
@@ -186,6 +206,116 @@ function numberValue(formData: FormData, key: string, label: string) {
 
 function isDateValue(input: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(input) && !Number.isNaN(Date.parse(`${input}T00:00:00`));
+}
+
+type TiptapJsonNode = {
+  type?: string;
+  attrs?: Record<string, unknown>;
+  content?: TiptapJsonNode[];
+};
+
+function csvValue(value: string) {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function collectTiptapImageUrls(node: unknown): string[] {
+  if (!node || typeof node !== "object") return [];
+  const tiptapNode = node as TiptapJsonNode;
+  const src = tiptapNode.type === "image" && typeof tiptapNode.attrs?.src === "string" ? tiptapNode.attrs.src : "";
+  return [
+    ...(src && !src.startsWith("blob:") && !src.startsWith("data:") ? [src] : []),
+    ...((tiptapNode.content || []).flatMap(collectTiptapImageUrls)),
+  ];
+}
+
+function replaceInlineImageUrls(node: unknown, uploadMap: Map<string, string>): unknown {
+  if (!node || typeof node !== "object") return node;
+  const tiptapNode = node as TiptapJsonNode;
+  const attrs = tiptapNode.attrs ? { ...tiptapNode.attrs } : undefined;
+
+  if (tiptapNode.type === "image" && attrs) {
+    const uploadId = typeof attrs.uploadId === "string" ? attrs.uploadId : "";
+    if (uploadId && uploadMap.has(uploadId)) {
+      attrs.src = uploadMap.get(uploadId);
+      delete attrs.uploadId;
+    }
+  }
+
+  return {
+    ...tiptapNode,
+    ...(attrs ? { attrs } : {}),
+    ...(tiptapNode.content ? { content: tiptapNode.content.map((child) => replaceInlineImageUrls(child, uploadMap)) } : {}),
+  };
+}
+
+function hasUnresolvedInlineImage(node: unknown): boolean {
+  if (!node || typeof node !== "object") return false;
+  const tiptapNode = node as TiptapJsonNode;
+  const src = tiptapNode.type === "image" && typeof tiptapNode.attrs?.src === "string" ? tiptapNode.attrs.src : "";
+  return src.startsWith("blob:") || (tiptapNode.content || []).some(hasUnresolvedInlineImage);
+}
+
+async function uploadInlinePostImages(formData: FormData, uploadedUrls: string[]) {
+  const ids = csvValue(value(formData, "contentInlineImageIds"));
+  const files = imageFiles(formData, "contentInlineImages");
+  const uploadMap = new Map<string, string>();
+
+  for (const [index, file] of files.entries()) {
+    const id = ids[index];
+    if (!id) continue;
+    const url = await uploadImageFile(file);
+    uploadedUrls.push(url);
+    uploadMap.set(id, url);
+  }
+
+  return uploadMap;
+}
+
+async function resolvePostContent(formData: FormData, uploadedUrls: string[]) {
+  const contentFormat = value(formData, "contentFormat") === "tiptap" ? "tiptap" : "plain";
+  const content = value(formData, "content");
+
+  if (contentFormat === "plain") {
+    return {
+      ok: true as const,
+      value: {
+        contentFormat,
+        content,
+        contentText: content,
+        contentJson: undefined,
+      },
+    };
+  }
+
+  try {
+    const contentJson = JSON.parse(value(formData, "contentJson") || "{}") as unknown;
+    const contentText = value(formData, "contentText") || content;
+
+    if (!contentJson || typeof contentJson !== "object" || (contentJson as { type?: unknown }).type !== "doc") {
+      return { ok: false as const, message: "Noi dung rich editor chua hop le." };
+    }
+
+    const uploadMap = await uploadInlinePostImages(formData, uploadedUrls);
+    const resolvedContentJson = replaceInlineImageUrls(contentJson, uploadMap);
+    if (hasUnresolvedInlineImage(resolvedContentJson)) {
+      return { ok: false as const, message: "Anh trong bai viet chua upload duoc. Vui long chon lai anh." };
+    }
+
+    return {
+      ok: true as const,
+      value: {
+        contentFormat,
+        content: contentText,
+        contentText,
+        contentJson: resolvedContentJson,
+      },
+    };
+  } catch {
+    return { ok: false as const, message: "Noi dung rich editor chua hop le." };
+  }
 }
 
 function mutationError(error: unknown): AdminActionState {
@@ -350,8 +480,9 @@ export async function createProduct(
       price: price.value,
       image,
       description: value(formData, "description"),
+      branchIds: multiValues(formData, "branchIds"),
       featured: formData.get("featured") === "on",
-      status: "published",
+      status: value(formData, "status") || "draft",
     });
     revalidateAdminAndPublic("/products");
     return success("Da tao san pham moi.");
@@ -393,6 +524,7 @@ export async function updateProduct(
       price: price.value,
       image,
       description: value(formData, "description"),
+      branchIds: multiValues(formData, "branchIds"),
       featured: formData.get("featured") === "on",
       status: value(formData, "status") || "published",
     });
@@ -442,10 +574,10 @@ export async function createPromotion(
       content: value(formData, "content"),
       badge: value(formData, "badge"),
       image,
-      branchIds: csv(formData, "branchIds"),
+      branchIds: multiValues(formData, "branchIds"),
       seoTitle: value(formData, "seoTitle"),
       seoDescription: value(formData, "seoDescription"),
-      status: "published",
+      status: value(formData, "status") || "draft",
     });
     revalidateAdminAndPublic("/promotions");
     return success("Da tao uu dai moi.");
@@ -485,7 +617,7 @@ export async function updatePromotion(
       content: value(formData, "content"),
       badge: value(formData, "badge"),
       image,
-      branchIds: csv(formData, "branchIds"),
+      branchIds: multiValues(formData, "branchIds"),
       seoTitle: value(formData, "seoTitle"),
       seoDescription: value(formData, "seoDescription"),
       status: value(formData, "status") || "published",
@@ -510,6 +642,117 @@ export async function deletePromotion(formData: FormData) {
   revalidateAdminAndPublic("/promotions");
 }
 
+async function ensurePostCategoryName(categoryName: string) {
+  const category = await PostCategoryModel.findOne({
+    name: categoryName,
+    status: "active",
+  }).lean();
+  if (category) return true;
+
+  const categoryCount = await PostCategoryModel.countDocuments();
+  if (categoryCount === 0) {
+    return Boolean(categoryName);
+  }
+
+  return false;
+}
+
+export async function createPostCategory(
+  _prevState: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  await requireAdmin();
+  await requireDbConnection();
+
+  const fieldErrors = requiredFields(formData, {
+    name: "Ten chuyen muc",
+  });
+  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin chuyen muc.", fieldErrors);
+
+  const name = value(formData, "name");
+  const slug = value(formData, "slug") || slugify(name);
+  if (!slug) return fieldError("Slug chuyen muc chua hop le.", { slug: "Slug chuyen muc chua hop le." });
+
+  try {
+    await PostCategoryModel.create({
+      name,
+      slug,
+      id: slug,
+      description: value(formData, "description"),
+      status: value(formData, "status") || "active",
+      sortOrder: Number(value(formData, "sortOrder") || 0),
+    });
+    revalidateAdminAndPublic("/post-categories");
+    revalidateAdminAndPublic("/posts");
+    return success("Da tao chuyen muc moi.");
+  } catch (error) {
+    return mutationError(error);
+  }
+}
+
+export async function updatePostCategory(
+  _prevState: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  await requireAdmin();
+  await requireDbConnection();
+
+  const id = value(formData, "_id");
+  if (!id) return fieldError("Thieu ID ban ghi.", { _id: "Thieu ID ban ghi." });
+
+  const fieldErrors = requiredFields(formData, {
+    name: "Ten chuyen muc",
+  });
+  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin chuyen muc.", fieldErrors);
+
+  const name = value(formData, "name");
+  const slug = value(formData, "slug") || slugify(name);
+  if (!slug) return fieldError("Slug chuyen muc chua hop le.", { slug: "Slug chuyen muc chua hop le." });
+
+  const existing = await PostCategoryModel.findById(id).lean();
+
+  try {
+    await PostCategoryModel.findByIdAndUpdate(id, {
+      name,
+      slug,
+      id: slug,
+      description: value(formData, "description"),
+      status: value(formData, "status") || "active",
+      sortOrder: Number(value(formData, "sortOrder") || 0),
+    });
+
+    const previousName = String(existing?.name || "");
+    if (previousName && previousName !== name) {
+      await PostModel.updateMany({ category: previousName }, { $set: { category: name } });
+    }
+
+    revalidateAdminAndPublic("/post-categories");
+    revalidateAdminAndPublic("/posts");
+    return success("Da cap nhat chuyen muc.");
+  } catch (error) {
+    return mutationError(error);
+  }
+}
+
+export async function deletePostCategory(formData: FormData) {
+  await requireAdmin();
+  await requireDbConnection();
+
+  const id = value(formData, "_id");
+  const existing = await PostCategoryModel.findById(id).lean();
+  if (!existing) return;
+
+  const linkedPosts = await PostModel.countDocuments({ category: String(existing.name || "") });
+  if (linkedPosts > 0) {
+    await PostCategoryModel.findByIdAndUpdate(id, { status: "hidden" });
+  } else {
+    await PostCategoryModel.findByIdAndDelete(id);
+  }
+
+  revalidateAdminAndPublic("/post-categories");
+  revalidateAdminAndPublic("/posts");
+}
+
 export async function createPost(
   _prevState: AdminActionState,
   formData: FormData,
@@ -524,12 +767,20 @@ export async function createPost(
   const publishedAt = value(formData, "publishedAt") || new Date().toISOString().slice(0, 10);
   if (!isDateValue(publishedAt)) fieldErrors.publishedAt = "Ngay dang phai co dang YYYY-MM-DD.";
   if (Object.keys(fieldErrors).length) return fieldError("Vui long kiem tra thong tin bai viet.", fieldErrors);
-  const imagePayloadError = validateImagePayload(formData, ["image"]);
+  if (!(await ensurePostCategoryName(value(formData, "category")))) {
+    return fieldError("Chuyen muc khong hop le hoac dang an.", { category: "Vui long chon chuyen muc co san." });
+  }
+  const imagePayloadError = validateImagePayload(formData, ["image", "contentInlineImages"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
 
   const uploadedUrls: string[] = [];
 
   try {
+    const postContent = await resolvePostContent(formData, uploadedUrls);
+    if (!postContent.ok) {
+      await cleanupUploadedOnFailure(uploadedUrls);
+      return fieldError(postContent.message, { content: postContent.message });
+    }
     const image = await resolveImageField(formData, "image", uploadedUrls);
 
     await PostModel.create({
@@ -538,10 +789,13 @@ export async function createPost(
       category: value(formData, "category"),
       image,
       publishedAt,
-      content: value(formData, "content"),
+      content: postContent.value.content,
+      contentFormat: postContent.value.contentFormat,
+      contentText: postContent.value.contentText,
+      ...(postContent.value.contentFormat === "tiptap" ? { contentJson: postContent.value.contentJson } : {}),
       seoTitle: value(formData, "seoTitle"),
       seoDescription: value(formData, "seoDescription"),
-      status: "published",
+      status: value(formData, "status") || "draft",
     });
     revalidateAdminAndPublic("/posts");
     return success("Da tao bai viet moi.");
@@ -568,28 +822,45 @@ export async function updatePost(
   const publishedAt = value(formData, "publishedAt") || new Date().toISOString().slice(0, 10);
   if (!isDateValue(publishedAt)) fieldErrors.publishedAt = "Ngay dang phai co dang YYYY-MM-DD.";
   if (Object.keys(fieldErrors).length) return fieldError("Vui long kiem tra thong tin bai viet.", fieldErrors);
-  const imagePayloadError = validateImagePayload(formData, ["image"]);
+  if (!(await ensurePostCategoryName(value(formData, "category")))) {
+    return fieldError("Chuyen muc khong hop le hoac dang an.", { category: "Vui long chon chuyen muc co san." });
+  }
+  const imagePayloadError = validateImagePayload(formData, ["image", "contentInlineImages"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
 
   const existing = await PostModel.findById(id).lean();
   const uploadedUrls: string[] = [];
 
   try {
+    const postContent = await resolvePostContent(formData, uploadedUrls);
+    if (!postContent.ok) {
+      await cleanupUploadedOnFailure(uploadedUrls);
+      return fieldError(postContent.message, { content: postContent.message });
+    }
     const image = await resolveImageField(formData, "image", uploadedUrls);
 
     await PostModel.findByIdAndUpdate(id, {
-      title: value(formData, "title"),
-      excerpt: value(formData, "excerpt"),
-      category: value(formData, "category"),
-      image,
-      publishedAt,
-      content: value(formData, "content"),
-      seoTitle: value(formData, "seoTitle"),
-      seoDescription: value(formData, "seoDescription"),
-      status: value(formData, "status") || "published",
+      $set: {
+        title: value(formData, "title"),
+        excerpt: value(formData, "excerpt"),
+        category: value(formData, "category"),
+        image,
+        publishedAt,
+        content: postContent.value.content,
+        contentFormat: postContent.value.contentFormat,
+        contentText: postContent.value.contentText,
+        ...(postContent.value.contentFormat === "tiptap" ? { contentJson: postContent.value.contentJson } : {}),
+        seoTitle: value(formData, "seoTitle"),
+        seoDescription: value(formData, "seoDescription"),
+        status: value(formData, "status") || "published",
+      },
+      ...(postContent.value.contentFormat === "plain" ? { $unset: { contentJson: "" } } : {}),
     });
 
-    await cleanupRemovedMedia([String(existing?.image || "")], [image]);
+    await cleanupRemovedMedia(
+      [String(existing?.image || ""), ...collectTiptapImageUrls(existing?.contentJson)],
+      [image, ...collectTiptapImageUrls(postContent.value.contentJson)],
+    );
     revalidateAdminAndPublic("/posts");
     return success("Da cap nhat bai viet.");
   } catch (error) {
@@ -604,7 +875,7 @@ export async function deletePost(formData: FormData) {
 
   const existing = await PostModel.findById(value(formData, "_id")).lean();
   await PostModel.findByIdAndDelete(value(formData, "_id"));
-  await cleanupRemovedMedia([String(existing?.image || "")]);
+  await cleanupRemovedMedia([String(existing?.image || ""), ...collectTiptapImageUrls(existing?.contentJson)]);
   revalidateAdminAndPublic("/posts");
 }
 

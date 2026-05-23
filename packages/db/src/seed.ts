@@ -26,6 +26,8 @@ export interface Product {
   price: number;
   image: string;
   featured?: boolean;
+  branchIds?: string[];
+  status?: "published" | "draft";
 }
 
 export interface Promotion {
@@ -45,11 +47,24 @@ export interface Post {
   title: string;
   excerpt: string;
   content: string;
+  contentFormat?: "plain" | "tiptap";
+  contentJson?: unknown;
+  contentText?: string;
   category: string;
   publishedAt: string;
   image: string;
+  status?: "published" | "draft";
   seoTitle?: string;
   seoDescription?: string;
+}
+
+export interface PostCategory {
+  id: string;
+  slug: string;
+  name: string;
+  description?: string;
+  status?: "active" | "hidden";
+  sortOrder?: number;
 }
 
 export interface SiteSettings {
@@ -300,6 +315,33 @@ export const posts: Post[] = [
     category: "Livestream",
     publishedAt: "2026-04-20",
     image: `${imageBase}1551817958-20204d6ab1da?auto=format&fit=crop&w=1200&q=80`,
+  },
+];
+
+export const postCategories: PostCategory[] = [
+  {
+    id: "giai-dau",
+    slug: "giai-dau",
+    name: "Giáº£i Ä‘áº¥u",
+    description: "Tin giáº£i Ä‘áº¥u, recap vÃ  lá»‹ch thi Ä‘áº¥u cá»™ng Ä‘á»“ng.",
+    status: "active",
+    sortOrder: 1,
+  },
+  {
+    id: "co-so",
+    slug: "co-so",
+    name: "CÆ¡ sá»Ÿ",
+    description: "Cáº­p nháº­t khai trÆ°Æ¡ng, váº­n hÃ nh vÃ  nÃ¢ng cáº¥p táº¡i cÃ¡c chi nhÃ¡nh.",
+    status: "active",
+    sortOrder: 2,
+  },
+  {
+    id: "livestream",
+    slug: "livestream",
+    name: "Livestream",
+    description: "Lá»‹ch livestream, kÃ¨o hot vÃ  ná»™i dung social.",
+    status: "active",
+    sortOrder: 3,
   },
 ];
 

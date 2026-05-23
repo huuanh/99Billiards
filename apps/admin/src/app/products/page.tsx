@@ -1,19 +1,30 @@
-import { getProducts } from "@99billiards/db";
-import type { Product } from "@99billiards/db/seed";
+import { getAdminProducts, getBranches } from "@99billiards/db";
+import type { Branch, Product } from "@99billiards/db/seed";
 import { formatCurrency } from "@99billiards/ui";
-import { createProduct, deleteProduct, updateProduct } from "../actions";
-import { AdminShell, Input, Panel, SaveButton, Select, StatusPill, Textarea } from "@/components/admin-shell";
 import { AdminActionForm } from "@/components/admin-action-form";
 import { FormModal } from "@/components/admin-modal";
+import { AdminShell, Input, Panel, SaveButton, Select, StatusPill, Textarea } from "@/components/admin-shell";
+import { BranchMultiSelect } from "@/components/branch-multi-select";
 import { ImageUploadField } from "@/components/image-upload-field";
+import { createProduct, deleteProduct, updateProduct } from "../actions";
 
 interface AdminProduct extends Product {
   _id?: string;
-  status?: string;
+  status?: "published" | "draft";
   description?: string;
 }
 
-function ProductForm({ product }: { product?: AdminProduct }) {
+interface AdminBranch extends Branch {
+  _id?: string;
+}
+
+function branchSummary(branchIds: string[] | undefined, branchNames: Map<string, string>) {
+  const ids = branchIds || [];
+  if (!ids.length) return "Toàn hệ thống";
+  return ids.map((id) => branchNames.get(id) || id).join(", ");
+}
+
+function ProductForm({ product, branches }: { product?: AdminProduct; branches: AdminBranch[] }) {
   const isEditing = Boolean(product?._id);
 
   return (
@@ -26,17 +37,18 @@ function ProductForm({ product }: { product?: AdminProduct }) {
           <Input name="name" label="Tên sản phẩm" placeholder="Combo đêm 4 người" defaultValue={product?.name} />
           <Input name="category" label="Nhóm" placeholder="Combo" defaultValue={product?.category} />
           <Input name="price" label="Giá" placeholder="299000" defaultValue={product?.price} />
-          {isEditing ? (
-            <Select
-              name="status"
-              label="Trạng thái"
-              options={["published", "draft"]}
-              defaultValue={product?.status || "published"}
-            />
-          ) : null}
+          <Select
+            name="status"
+            label="Trạng thái"
+            options={["draft", "published"]}
+            defaultValue={product?.status || "draft"}
+          />
           <label className="flex items-center gap-2 rounded-md border border-[#dfe3d8] bg-[#f8faf5] px-3 py-2 text-sm font-bold">
             <input name="featured" type="checkbox" defaultChecked={product?.featured} /> Nổi bật
           </label>
+          <div className="md:col-span-2">
+            <BranchMultiSelect branches={branches} defaultValues={product?.branchIds || []} />
+          </div>
           <div className="md:col-span-2">
             <Textarea name="description" label="Mô tả" defaultValue={product?.description} />
           </div>
@@ -58,30 +70,40 @@ function ProductForm({ product }: { product?: AdminProduct }) {
 }
 
 export default async function ProductsPage() {
-  const products = (await getProducts()) as AdminProduct[];
+  const [products, branches] = await Promise.all([
+    getAdminProducts() as Promise<AdminProduct[]>,
+    getBranches() as Promise<AdminBranch[]>,
+  ]);
+  const branchNames = new Map(branches.map((branch) => [branch.id, branch.name]));
 
   return (
     <AdminShell
       title="Sản phẩm"
-      subtitle="Quản lý dịch vụ bàn, combo, đồ uống và đồ ăn."
+      subtitle="Quản lý dịch vụ bàn, combo, đồ uống và đồ ăn theo từng cơ sở."
     >
       <Panel
         title="Bảng sản phẩm"
-        subtitle={`${products.length} sản phẩm đang hiển thị.`}
+        subtitle={`${products.length} sản phẩm trong CMS.`}
         aside={
-          <FormModal trigger="Thêm sản phẩm" title="Thêm sản phẩm" subtitle="Chọn ảnh và upload khi bấm lưu." intent="primary">
-            <ProductForm />
+          <FormModal
+            trigger="Thêm sản phẩm"
+            title="Thêm sản phẩm"
+            subtitle="Sản phẩm mới mặc định là draft, chọn cơ sở áp dụng trước khi publish."
+            intent="primary"
+          >
+            <ProductForm branches={branches} />
           </FormModal>
         }
       >
         <div className="overflow-auto">
-          <table className="w-full min-w-[900px] text-left text-sm">
+          <table className="w-full min-w-[1080px] text-left text-sm">
             <thead className="border-b border-[#e7eadf] text-[11px] uppercase tracking-[0.14em] text-[#657064]">
               <tr>
                 <th className="px-3 py-2">Ảnh</th>
                 <th className="px-3 py-2">Tên</th>
                 <th className="px-3 py-2">Nhóm</th>
                 <th className="px-3 py-2">Giá</th>
+                <th className="px-3 py-2">Cơ sở</th>
                 <th className="px-3 py-2">Nổi bật</th>
                 <th className="px-3 py-2">Trạng thái</th>
                 <th className="px-3 py-2">Thao tác</th>
@@ -101,6 +123,7 @@ export default async function ProductsPage() {
                   <td className="px-3 py-3 font-bold">{product.name}</td>
                   <td className="px-3 py-3">{product.category}</td>
                   <td className="px-3 py-3">{formatCurrency(product.price)}</td>
+                  <td className="max-w-[280px] px-3 py-3 text-[#596256]">{branchSummary(product.branchIds, branchNames)}</td>
                   <td className="px-3 py-3">{product.featured ? "Có" : "Không"}</td>
                   <td className="px-3 py-3">
                     <StatusPill label={product.status || "published"} tone={product.status === "draft" ? "warning" : "good"} />
@@ -108,8 +131,8 @@ export default async function ProductsPage() {
                   <td className="px-3 py-3">
                     {product._id ? (
                       <div className="flex gap-2">
-                        <FormModal trigger="Sửa" title={`Sửa ${product.name}`} subtitle="Cập nhật thông tin và ảnh sản phẩm.">
-                          <ProductForm product={product} />
+                        <FormModal trigger="Sửa" title={`Sửa ${product.name}`} subtitle="Cập nhật thông tin, cơ sở áp dụng và ảnh sản phẩm.">
+                          <ProductForm product={product} branches={branches} />
                         </FormModal>
                         <form action={deleteProduct}>
                           <input type="hidden" name="_id" value={product._id} />
