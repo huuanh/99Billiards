@@ -12,7 +12,7 @@ export default async function SettingsPage() {
       title="Settings"
       subtitle="Quản lý ảnh homepage, SEO mặc định và tracking pixels cho landing."
     >
-      <Panel title="Homepage & Tracking" subtitle="Upload ảnh trực tiếp, không cần nhập URL thủ công.">
+      <Panel title="Homepage & Tracking" subtitle="Chọn ảnh trong form, hệ thống upload khi bấm lưu.">
         <AdminActionForm action={updateSiteSettings} className="grid max-w-4xl gap-5">
           <section className="grid gap-4 rounded-lg border border-[#dfe3d8] bg-[#f8faf5] p-4">
             <Input name="siteName" label="Tên website" defaultValue={settings.siteName} />

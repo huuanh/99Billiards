@@ -112,7 +112,7 @@ export default async function BranchesPage() {
           <FormModal
             trigger="Thêm cơ sở"
             title="Thêm cơ sở"
-            subtitle="Tạo cơ sở mới, upload ảnh trực tiếp và lưu vào MongoDB."
+            subtitle="Tạo cơ sở mới, chọn ảnh và upload khi bấm lưu."
             intent="primary"
           >
             <BranchForm />

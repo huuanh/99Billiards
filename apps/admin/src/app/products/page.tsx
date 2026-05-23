@@ -69,7 +69,7 @@ export default async function ProductsPage() {
         title="Bảng sản phẩm"
         subtitle={`${products.length} sản phẩm đang hiển thị.`}
         aside={
-          <FormModal trigger="Thêm sản phẩm" title="Thêm sản phẩm" subtitle="Upload ảnh và lưu sản phẩm mới." intent="primary">
+          <FormModal trigger="Thêm sản phẩm" title="Thêm sản phẩm" subtitle="Chọn ảnh và upload khi bấm lưu." intent="primary">
             <ProductForm />
           </FormModal>
         }

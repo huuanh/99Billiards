@@ -21,11 +21,11 @@ export default async function MediaPage() {
           <MediaUploader />
         </Panel>
 
-        <Panel title="Dùng ảnh trong CMS" subtitle="Upload một lần, copy URL và dán vào đúng trường ảnh.">
+        <Panel title="Dùng ảnh trong CMS" subtitle="Các form CMS hiện upload ảnh khi bấm lưu.">
           <div className="space-y-3 text-sm leading-6 text-black/70">
-            <p><strong>Homepage:</strong> vào Settings và upload ảnh hero homepage.</p>
-            <p><strong>Cơ sở:</strong> dán URL vào ảnh đại diện, gallery URLs, hoặc bản đồ embed.</p>
-            <p><strong>Sản phẩm / Ưu đãi / Tin tức:</strong> dán URL vào trường ảnh của từng bảng.</p>
+            <p><strong>Homepage:</strong> vào Settings, chọn ảnh hero và bấm lưu.</p>
+            <p><strong>Cơ sở:</strong> chọn ảnh đại diện/gallery trong form rồi bấm lưu.</p>
+            <p><strong>Sản phẩm / Ưu đãi / Tin tức:</strong> chọn ảnh trong form rồi bấm lưu.</p>
           </div>
         </Panel>
       </div>

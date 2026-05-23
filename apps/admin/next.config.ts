@@ -6,6 +6,11 @@ loadRootEnv();
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@99billiards/db", "@99billiards/config", "@99billiards/ui"],
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "30mb",
+    },
+  },
   images: {
     remotePatterns: [
       {

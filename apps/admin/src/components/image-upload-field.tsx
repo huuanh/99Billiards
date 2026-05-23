@@ -1,16 +1,32 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-interface UploadPayload {
-  publicUrl: string;
-  error?: string;
+interface PendingImage {
+  id: string;
+  file: File;
+  previewUrl: string;
+}
+
+const maxFieldUploadBytes = 25 * 1024 * 1024;
+const maxSingleUploadBytes = 10 * 1024 * 1024;
+
+function formatMegabytes(bytes: number) {
+  return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
 }
 
 function normalizeUrls(value?: string | string[]) {
   if (!value) return [];
   const values = Array.isArray(value) ? value : value.split(",");
   return values.map((item) => item.trim()).filter(Boolean);
+}
+
+function makePendingImage(file: File): PendingImage {
+  return {
+    id: `${file.name}-${file.size}-${file.lastModified}-${crypto.randomUUID()}`,
+    file,
+    previewUrl: URL.createObjectURL(file),
+  };
 }
 
 export function ImageUploadField({
@@ -25,98 +41,121 @@ export function ImageUploadField({
   multiple?: boolean;
 }) {
   const [urls, setUrls] = useState(() => normalizeUrls(defaultValue));
-  const [isUploading, setIsUploading] = useState(false);
+  const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const uploadedInSessionRef = useRef(new Set<string>());
+  const fieldRef = useRef<HTMLDivElement>(null);
+  const fileInputName = `${name}Files`;
+  const retainedValue = useMemo(() => urls.join(", "), [urls]);
 
-  async function deleteSessionUpload(url: string) {
-    uploadedInSessionRef.current.delete(url);
-    await fetch("/api/uploads/delete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url }),
-    });
+  useEffect(() => {
+    return () => {
+      for (const image of pendingImages) URL.revokeObjectURL(image.previewUrl);
+    };
+  }, [pendingImages]);
+
+  useEffect(() => {
+    function handleFormReset(event: Event) {
+      const form = fieldRef.current?.closest("form");
+      const formId = form?.getAttribute("data-admin-form-id");
+      const detail = (event as CustomEvent<{ formId?: string }>).detail;
+      if (!formId || detail?.formId !== formId) return;
+
+      setPendingImages((current) => {
+        for (const image of current) URL.revokeObjectURL(image.previewUrl);
+        return [];
+      });
+      setUrls(normalizeUrls(defaultValue));
+      setError("");
+      if (inputRef.current) inputRef.current.value = "";
+    }
+
+    window.addEventListener("admin-form-reset", handleFormReset);
+    return () => window.removeEventListener("admin-form-reset", handleFormReset);
+  }, [defaultValue]);
+
+  function syncInputFiles(nextImages: PendingImage[]) {
+    if (!inputRef.current) return;
+
+    const dataTransfer = new DataTransfer();
+    for (const image of nextImages) dataTransfer.items.add(image.file);
+    inputRef.current.files = dataTransfer.files;
   }
 
-  async function uploadFiles(files: FileList | null) {
+  function selectFiles(files: FileList | null) {
     const selectedFiles = Array.from(files || []).filter((file) => file.size > 0);
     if (!selectedFiles.length) return;
 
-    setIsUploading(true);
-    setError("");
-
-    try {
-      const uploadedUrls: string[] = [];
-
-      for (const file of selectedFiles) {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const response = await fetch("/api/uploads", {
-          method: "POST",
-          body: formData,
-        });
-        const payload = (await response.json()) as UploadPayload;
-
-        if (!response.ok) {
-          throw new Error(payload.error || "Upload len R2 chua thanh cong.");
-        }
-
-        uploadedInSessionRef.current.add(payload.publicUrl);
-        uploadedUrls.push(payload.publicUrl);
+    setPendingImages((current) => {
+      const oversizedFile = selectedFiles.find((file) => file.size > maxSingleUploadBytes);
+      if (oversizedFile) {
+        setError(
+          `Anh "${oversizedFile.name}" nang ${formatMegabytes(oversizedFile.size)}. Moi anh toi da ${formatMegabytes(maxSingleUploadBytes)}.`,
+        );
+        syncInputFiles(current);
+        return current;
       }
 
-      setUrls((current) => {
-        if (multiple) return [...current, ...uploadedUrls];
+      const next = multiple
+        ? [...current, ...selectedFiles.map(makePendingImage)]
+        : [makePendingImage(selectedFiles[selectedFiles.length - 1])];
+      const totalSize = next.reduce((total, image) => total + image.file.size, 0);
 
-        for (const url of current) {
-          if (uploadedInSessionRef.current.has(url) && !uploadedUrls.includes(url)) {
-            void deleteSessionUpload(url);
-          }
-        }
+      if (totalSize > maxFieldUploadBytes) {
+        setError(
+          `Tong dung luong anh dang chon la ${formatMegabytes(totalSize)}. Moi lan luu toi da ${formatMegabytes(maxFieldUploadBytes)}.`,
+        );
+        syncInputFiles(current);
+        return current;
+      }
 
-        return uploadedUrls.slice(-1);
-      });
-      if (inputRef.current) inputRef.current.value = "";
-    } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "Upload loi.");
-    } finally {
-      setIsUploading(false);
-    }
+      for (const image of current) {
+        if (!next.some((item) => item.id === image.id)) URL.revokeObjectURL(image.previewUrl);
+      }
+
+      setError("");
+      syncInputFiles(next);
+      return next;
+    });
   }
 
-  function removeUrl(url: string) {
+  function removeExistingUrl(url: string) {
     setUrls((current) => current.filter((item) => item !== url));
-    if (uploadedInSessionRef.current.has(url)) {
-      void deleteSessionUpload(url).catch(() => {
-        setError("Khong xoa duoc anh vua upload. Anh se duoc don khi luu hoac xoa ban ghi.");
-      });
-    }
+  }
+
+  function removePendingImage(id: string) {
+    setPendingImages((current) => {
+      const removed = current.find((item) => item.id === id);
+      if (removed) URL.revokeObjectURL(removed.previewUrl);
+      const next = current.filter((item) => item.id !== id);
+      setError("");
+      syncInputFiles(next);
+      return next;
+    });
   }
 
   return (
-    <div className="grid gap-2">
-      <input type="hidden" name={name} value={urls.join(", ")} />
+    <div ref={fieldRef} className="grid gap-2">
+      <input type="hidden" name={name} value={retainedValue} />
       <div className="flex flex-col gap-2 rounded-lg border border-[#dfe3d8] bg-[#f8faf5] p-3">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm font-black text-[#2b332d]">{label}</p>
             <p className="mt-1 text-xs text-[#657064]">
               {multiple
-                ? "Upload nhieu anh, co the xoa tung anh khoi gallery."
-                : "Upload anh qua server admin, form se tu luu URL R2."}
+                ? "Chon nhieu anh, upload len R2 khi bam Luu."
+                : "Chon anh moi, upload len R2 khi bam Luu."}
             </p>
           </div>
           <label className="focus-ring inline-flex min-h-9 cursor-pointer items-center justify-center rounded-md bg-[#111713] px-3 py-2 text-sm font-bold text-white">
-            {isUploading ? "Dang upload..." : multiple ? "Them anh" : "Chon anh"}
+            {multiple ? "Them anh" : "Chon anh"}
             <input
               ref={inputRef}
+              name={fileInputName}
               type="file"
               accept="image/*"
               multiple={multiple}
-              disabled={isUploading}
-              onChange={(event) => uploadFiles(event.target.files)}
+              onChange={(event) => selectFiles(event.target.files)}
               className="sr-only"
             />
           </label>
@@ -128,7 +167,7 @@ export function ImageUploadField({
           </p>
         ) : null}
 
-        {urls.length ? (
+        {urls.length || pendingImages.length ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {urls.map((url) => (
               <div key={url} className="overflow-hidden rounded-lg border border-[#dfe3d8] bg-white">
@@ -138,10 +177,28 @@ export function ImageUploadField({
                   <p className="truncate text-xs text-[#657064]">{url}</p>
                   <button
                     type="button"
-                    onClick={() => removeUrl(url)}
+                    onClick={() => removeExistingUrl(url)}
                     className="min-h-8 rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs font-black text-red-700"
                   >
-                    Xoa anh khoi form
+                    Xoa anh khi luu
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {pendingImages.map((image) => (
+              <div key={image.id} className="overflow-hidden rounded-lg border border-[#dfe3d8] bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={image.previewUrl} alt="" className="aspect-video w-full bg-[#eef1e9] object-cover" />
+                <div className="grid gap-2 p-2">
+                  <p className="truncate text-xs font-bold text-[#2b332d]">{image.file.name}</p>
+                  <p className="text-xs text-[#657064]">Se upload khi bam Luu.</p>
+                  <button
+                    type="button"
+                    onClick={() => removePendingImage(image.id)}
+                    className="min-h-8 rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs font-black text-red-700"
+                  >
+                    Bo anh khoi form
                   </button>
                 </div>
               </div>

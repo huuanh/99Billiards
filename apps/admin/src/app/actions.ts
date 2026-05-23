@@ -10,7 +10,7 @@ import {
   SiteSettingModel,
   connectDb,
 } from "@99billiards/db";
-import { deleteObjectByPublicUrl } from "@99billiards/db/r2";
+import { deleteObjectByPublicUrl, uploadObject } from "@99billiards/db/r2";
 import { requireAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
@@ -31,8 +31,93 @@ function csv(formData: FormData, key: string) {
     .filter(Boolean);
 }
 
+const maxImageFileSize = 10 * 1024 * 1024;
+const maxImagePayloadSize = 25 * 1024 * 1024;
+
+function sanitizeFilename(filename: string) {
+  const cleaned = filename
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return cleaned || "image";
+}
+
 function uniqueUrls(urls: string[]) {
   return Array.from(new Set(urls.map((url) => url.trim()).filter(Boolean)));
+}
+
+function imageFiles(formData: FormData, key: string) {
+  return formData
+    .getAll(`${key}Files`)
+    .filter((file): file is File => file instanceof File && file.size > 0);
+}
+
+function validateImagePayload(formData: FormData, keys: string[]) {
+  const files = keys.flatMap((key) => imageFiles(formData, key));
+  const oversizedFile = files.find((file) => file.size > maxImageFileSize);
+  if (oversizedFile) {
+    return `Anh "${oversizedFile.name}" vuot gioi han 10MB.`;
+  }
+
+  const totalSize = files.reduce((total, file) => total + file.size, 0);
+  if (totalSize > maxImagePayloadSize) {
+    return "Tong dung luong anh moi lan luu toi da 25MB.";
+  }
+
+  return "";
+}
+
+async function uploadImageFile(file: File) {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("INVALID_IMAGE_TYPE");
+  }
+
+  if (file.size > maxImageFileSize) {
+    throw new Error("IMAGE_TOO_LARGE");
+  }
+
+  const filename = sanitizeFilename(file.name);
+  const key = `uploads/${Date.now()}-${crypto.randomUUID()}-${filename}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const publicUrl = await uploadObject(key, buffer, file.type || "application/octet-stream");
+
+  await MediaAssetModel.create({
+    filename: file.name,
+    url: publicUrl,
+    contentType: file.type,
+    size: file.size,
+    source: "r2",
+  });
+
+  return publicUrl;
+}
+
+async function resolveImageField(formData: FormData, key: string, uploadedUrls: string[]) {
+  const retained = csv(formData, key).slice(0, 1);
+  const files = imageFiles(formData, key);
+  const uploaded: string[] = [];
+
+  for (const file of files) {
+    uploaded.push(await uploadImageFile(file));
+  }
+
+  uploadedUrls.push(...uploaded);
+  return uploaded.length ? uploaded[uploaded.length - 1] : retained[0] || "";
+}
+
+async function resolveGalleryField(formData: FormData, key: string, uploadedUrls: string[]) {
+  const retained = csv(formData, key);
+  const uploaded: string[] = [];
+
+  for (const file of imageFiles(formData, key)) {
+    uploaded.push(await uploadImageFile(file));
+  }
+
+  uploadedUrls.push(...uploaded);
+  return uniqueUrls([...retained, ...uploaded]);
 }
 
 async function cleanupRemovedMedia(previousUrls: string[], nextUrls: string[] = []) {
@@ -51,6 +136,11 @@ async function cleanupRemovedMedia(previousUrls: string[], nextUrls: string[] = 
       }
     }),
   );
+}
+
+async function cleanupUploadedOnFailure(urls: string[]) {
+  if (!urls.length) return;
+  await cleanupRemovedMedia(urls);
 }
 
 function revalidateAdminAndPublic(path: string) {
@@ -100,6 +190,12 @@ function isDateValue(input: string) {
 
 function mutationError(error: unknown): AdminActionState {
   console.error("Admin mutation failed", error);
+  if (error instanceof Error && error.message === "INVALID_IMAGE_TYPE") {
+    return { ok: false, message: "Chi ho tro upload file anh." };
+  }
+  if (error instanceof Error && error.message === "IMAGE_TOO_LARGE") {
+    return { ok: false, message: "Anh toi da 10MB." };
+  }
   if (error instanceof Error && error.message.includes("E11000")) {
     return { ok: false, message: "Ma hoac slug da ton tai. Vui long dung gia tri khac." };
   }
@@ -120,8 +216,15 @@ export async function createBranch(
     address: "Dia chi",
   });
   if (Object.keys(fieldErrors).length) return fieldError("Vui long dien cac truong bat buoc.", fieldErrors);
+  const imagePayloadError = validateImagePayload(formData, ["image", "gallery"]);
+  if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
+
+  const uploadedUrls: string[] = [];
 
   try {
+    const image = await resolveImageField(formData, "image", uploadedUrls);
+    const gallery = await resolveGalleryField(formData, "gallery", uploadedUrls);
+
     await BranchModel.create({
       code: value(formData, "code"),
       name: value(formData, "name"),
@@ -130,8 +233,8 @@ export async function createBranch(
       phone: value(formData, "phone"),
       hours: value(formData, "hours") || "24/24",
       status: value(formData, "status") || "open",
-      image: value(formData, "image"),
-      gallery: csv(formData, "gallery"),
+      image,
+      gallery,
       highlights: csv(formData, "highlights"),
       amenities: csv(formData, "amenities"),
       description: value(formData, "description"),
@@ -143,6 +246,7 @@ export async function createBranch(
     revalidateAdminAndPublic("/branches");
     return success("Da tao co so moi.");
   } catch (error) {
+    await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
   }
 }
@@ -164,12 +268,16 @@ export async function updateBranch(
     address: "Dia chi",
   });
   if (Object.keys(fieldErrors).length) return fieldError("Vui long dien cac truong bat buoc.", fieldErrors);
+  const imagePayloadError = validateImagePayload(formData, ["image", "gallery"]);
+  if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
 
   const existing = await BranchModel.findById(id).lean();
-  const image = value(formData, "image");
-  const gallery = csv(formData, "gallery");
+  const uploadedUrls: string[] = [];
 
   try {
+    const image = await resolveImageField(formData, "image", uploadedUrls);
+    const gallery = await resolveGalleryField(formData, "gallery", uploadedUrls);
+
     await BranchModel.findByIdAndUpdate(id, {
       code: value(formData, "code"),
       name: value(formData, "name"),
@@ -196,6 +304,7 @@ export async function updateBranch(
     revalidateAdminAndPublic("/branches");
     return success("Da cap nhat co so.");
   } catch (error) {
+    await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
   }
 }
@@ -227,13 +336,19 @@ export async function createProduct(
   const price = numberValue(formData, "price", "Gia");
   if (price.error) fieldErrors.price = price.error;
   if (Object.keys(fieldErrors).length) return fieldError("Vui long kiem tra thong tin san pham.", fieldErrors);
+  const imagePayloadError = validateImagePayload(formData, ["image"]);
+  if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
+
+  const uploadedUrls: string[] = [];
 
   try {
+    const image = await resolveImageField(formData, "image", uploadedUrls);
+
     await ProductModel.create({
       name: value(formData, "name"),
       category: value(formData, "category"),
       price: price.value,
-      image: value(formData, "image"),
+      image,
       description: value(formData, "description"),
       featured: formData.get("featured") === "on",
       status: "published",
@@ -241,6 +356,7 @@ export async function createProduct(
     revalidateAdminAndPublic("/products");
     return success("Da tao san pham moi.");
   } catch (error) {
+    await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
   }
 }
@@ -262,11 +378,15 @@ export async function updateProduct(
   const price = numberValue(formData, "price", "Gia");
   if (price.error) fieldErrors.price = price.error;
   if (Object.keys(fieldErrors).length) return fieldError("Vui long kiem tra thong tin san pham.", fieldErrors);
+  const imagePayloadError = validateImagePayload(formData, ["image"]);
+  if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
 
   const existing = await ProductModel.findById(id).lean();
-  const image = value(formData, "image");
+  const uploadedUrls: string[] = [];
 
   try {
+    const image = await resolveImageField(formData, "image", uploadedUrls);
+
     await ProductModel.findByIdAndUpdate(id, {
       name: value(formData, "name"),
       category: value(formData, "category"),
@@ -281,6 +401,7 @@ export async function updateProduct(
     revalidateAdminAndPublic("/products");
     return success("Da cap nhat san pham.");
   } catch (error) {
+    await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
   }
 }
@@ -307,14 +428,20 @@ export async function createPromotion(
     description: "Mo ta",
   });
   if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin uu dai.", fieldErrors);
+  const imagePayloadError = validateImagePayload(formData, ["image"]);
+  if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
+
+  const uploadedUrls: string[] = [];
 
   try {
+    const image = await resolveImageField(formData, "image", uploadedUrls);
+
     await PromotionModel.create({
       title: value(formData, "title"),
       description: value(formData, "description"),
       content: value(formData, "content"),
       badge: value(formData, "badge"),
-      image: value(formData, "image"),
+      image,
       branchIds: csv(formData, "branchIds"),
       seoTitle: value(formData, "seoTitle"),
       seoDescription: value(formData, "seoDescription"),
@@ -323,6 +450,7 @@ export async function createPromotion(
     revalidateAdminAndPublic("/promotions");
     return success("Da tao uu dai moi.");
   } catch (error) {
+    await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
   }
 }
@@ -342,11 +470,15 @@ export async function updatePromotion(
     description: "Mo ta",
   });
   if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin uu dai.", fieldErrors);
+  const imagePayloadError = validateImagePayload(formData, ["image"]);
+  if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
 
   const existing = await PromotionModel.findById(id).lean();
-  const image = value(formData, "image");
+  const uploadedUrls: string[] = [];
 
   try {
+    const image = await resolveImageField(formData, "image", uploadedUrls);
+
     await PromotionModel.findByIdAndUpdate(id, {
       title: value(formData, "title"),
       description: value(formData, "description"),
@@ -363,6 +495,7 @@ export async function updatePromotion(
     revalidateAdminAndPublic("/promotions");
     return success("Da cap nhat uu dai.");
   } catch (error) {
+    await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
   }
 }
@@ -391,13 +524,19 @@ export async function createPost(
   const publishedAt = value(formData, "publishedAt") || new Date().toISOString().slice(0, 10);
   if (!isDateValue(publishedAt)) fieldErrors.publishedAt = "Ngay dang phai co dang YYYY-MM-DD.";
   if (Object.keys(fieldErrors).length) return fieldError("Vui long kiem tra thong tin bai viet.", fieldErrors);
+  const imagePayloadError = validateImagePayload(formData, ["image"]);
+  if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
+
+  const uploadedUrls: string[] = [];
 
   try {
+    const image = await resolveImageField(formData, "image", uploadedUrls);
+
     await PostModel.create({
       title: value(formData, "title"),
       excerpt: value(formData, "excerpt"),
       category: value(formData, "category"),
-      image: value(formData, "image"),
+      image,
       publishedAt,
       content: value(formData, "content"),
       seoTitle: value(formData, "seoTitle"),
@@ -407,6 +546,7 @@ export async function createPost(
     revalidateAdminAndPublic("/posts");
     return success("Da tao bai viet moi.");
   } catch (error) {
+    await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
   }
 }
@@ -428,11 +568,15 @@ export async function updatePost(
   const publishedAt = value(formData, "publishedAt") || new Date().toISOString().slice(0, 10);
   if (!isDateValue(publishedAt)) fieldErrors.publishedAt = "Ngay dang phai co dang YYYY-MM-DD.";
   if (Object.keys(fieldErrors).length) return fieldError("Vui long kiem tra thong tin bai viet.", fieldErrors);
+  const imagePayloadError = validateImagePayload(formData, ["image"]);
+  if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
 
   const existing = await PostModel.findById(id).lean();
-  const image = value(formData, "image");
+  const uploadedUrls: string[] = [];
 
   try {
+    const image = await resolveImageField(formData, "image", uploadedUrls);
+
     await PostModel.findByIdAndUpdate(id, {
       title: value(formData, "title"),
       excerpt: value(formData, "excerpt"),
@@ -449,6 +593,7 @@ export async function updatePost(
     revalidateAdminAndPublic("/posts");
     return success("Da cap nhat bai viet.");
   } catch (error) {
+    await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
   }
 }
@@ -491,11 +636,15 @@ export async function updateSiteSettings(
     defaultSeoTitle: "SEO title mac dinh",
   });
   if (Object.keys(fieldErrors).length) return fieldError("Vui long kiem tra settings.", fieldErrors);
+  const imagePayloadError = validateImagePayload(formData, ["heroImage"]);
+  if (imagePayloadError) return fieldError(imagePayloadError, { heroImage: imagePayloadError });
 
   const existing = await SiteSettingModel.findOne().sort({ updatedAt: -1 }).lean();
-  const heroImage = value(formData, "heroImage");
+  const uploadedUrls: string[] = [];
 
   try {
+    const heroImage = await resolveImageField(formData, "heroImage", uploadedUrls);
+
     await SiteSettingModel.findOneAndUpdate(
       {},
       {
@@ -520,6 +669,7 @@ export async function updateSiteSettings(
     revalidateAdminAndPublic("/settings");
     return success("Da luu settings.");
   } catch (error) {
+    await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
   }
 }
