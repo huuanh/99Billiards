@@ -169,8 +169,8 @@ export function ImageUploadField({
 
         {urls.length || pendingImages.length ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {urls.map((url) => (
-              <div key={url} className="overflow-hidden rounded-lg border border-[#dfe3d8] bg-white">
+            {urls.map((url, index) => (
+              <div key={`${url}-${index}`} className="overflow-hidden rounded-lg border border-[#dfe3d8] bg-white">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={url} alt="" className="aspect-video w-full bg-[#eef1e9] object-cover" />
                 <div className="grid gap-2 p-2">

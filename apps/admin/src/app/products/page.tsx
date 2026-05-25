@@ -7,6 +7,7 @@ import { AdminShell, Input, Panel, SaveButton, Select, StatusPill, Textarea } fr
 import { BranchMultiSelect } from "@/components/branch-multi-select";
 import { ImageUploadField } from "@/components/image-upload-field";
 import { createProduct, deleteProduct, updateProduct } from "../actions";
+import { requirePermission } from "@/lib/auth";
 
 interface AdminProduct extends Product {
   _id?: string;
@@ -70,6 +71,7 @@ function ProductForm({ product, branches }: { product?: AdminProduct; branches: 
 }
 
 export default async function ProductsPage() {
+  await requirePermission("products");
   const [products, branches] = await Promise.all([
     getAdminProducts() as Promise<AdminProduct[]>,
     getBranches() as Promise<AdminBranch[]>,

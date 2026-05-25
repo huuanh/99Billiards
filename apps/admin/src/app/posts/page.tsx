@@ -7,6 +7,7 @@ import { AdminActionForm } from "@/components/admin-action-form";
 import { FormModal } from "@/components/admin-modal";
 import { ImageUploadField } from "@/components/image-upload-field";
 import { PostContentEditor } from "@/components/post-content-editor";
+import { requirePermission } from "@/lib/auth";
 
 interface AdminPost extends Post {
   _id?: string;
@@ -91,6 +92,7 @@ function PostForm({ post, categories }: { post?: AdminPost; categories: AdminPos
 }
 
 export default async function PostsPage() {
+  await requirePermission("posts");
   const [posts, categories] = await Promise.all([
     getAdminPosts() as Promise<AdminPost[]>,
     getPostCategories() as Promise<AdminPostCategory[]>,

@@ -1,13 +1,13 @@
 import { MediaAssetModel, connectDb } from "@99billiards/db";
 import { deleteObjectByPublicUrl } from "@99billiards/db/r2";
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth";
+import { getAdminSession, hasPermission } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   const session = await getAdminSession();
-  if (!session) {
+  if (!hasPermission(session, "media")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

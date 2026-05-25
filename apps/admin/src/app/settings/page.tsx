@@ -3,8 +3,10 @@ import { updateSiteSettings } from "../actions";
 import { AdminActionForm } from "@/components/admin-action-form";
 import { AdminShell, Input, Panel, SaveButton, Textarea } from "@/components/admin-shell";
 import { ImageUploadField } from "@/components/image-upload-field";
+import { requirePermission } from "@/lib/auth";
 
 export default async function SettingsPage() {
+  await requirePermission("settings");
   const settings = await getSiteSettings();
 
   return (

@@ -1,7 +1,7 @@
 import { MediaAssetModel, connectDb } from "@99billiards/db";
 import { uploadObject } from "@99billiards/db/r2";
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth";
+import { hasPermission, getAdminSession } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -20,7 +20,7 @@ function sanitizeFilename(filename: string) {
 
 export async function POST(request: Request) {
   const session = await getAdminSession();
-  if (!session) {
+  if (!hasPermission(session, "media")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

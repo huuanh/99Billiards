@@ -6,6 +6,7 @@ import { AdminShell, Input, Panel, SaveButton, Select, StatusPill, Textarea } fr
 import { BranchMultiSelect } from "@/components/branch-multi-select";
 import { ImageUploadField } from "@/components/image-upload-field";
 import { createPromotion, deletePromotion, updatePromotion } from "../actions";
+import { requirePermission } from "@/lib/auth";
 
 interface AdminPromotion extends Promotion {
   _id?: string;
@@ -75,6 +76,7 @@ function PromotionForm({ promotion, branches }: { promotion?: AdminPromotion; br
 }
 
 export default async function PromotionsPage() {
+  await requirePermission("promotions");
   const [promotions, branches] = await Promise.all([
     getAdminPromotions() as Promise<AdminPromotion[]>,
     getBranches() as Promise<AdminBranch[]>,

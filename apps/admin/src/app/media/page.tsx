@@ -1,6 +1,7 @@
 import { AdminShell, Panel } from "@/components/admin-shell";
 import { MediaUploader } from "@/components/media-uploader";
 import { getMediaAssets } from "@99billiards/db";
+import { requirePermission } from "@/lib/auth";
 
 interface MediaAssetRow {
   _id: string;
@@ -12,6 +13,7 @@ interface MediaAssetRow {
 }
 
 export default async function MediaPage() {
+  await requirePermission("media");
   const assets = (await getMediaAssets()) as MediaAssetRow[];
 
   return (

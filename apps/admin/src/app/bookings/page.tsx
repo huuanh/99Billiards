@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getBookings, getBranches } from "@99billiards/db";
 import { deleteBooking, updateBookingStatus } from "../actions";
 import { AdminShell, Panel, StatusPill, Toolbar } from "@/components/admin-shell";
+import { requirePermission } from "@/lib/auth";
 
 type BookingRow = {
   _id: string;
@@ -70,6 +71,7 @@ export default async function BookingsPage({
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  await requirePermission("bookings");
   const params = searchParams ? await searchParams : {};
   const activeStatus = getParam(params.status) || "all";
   const query = getParam(params.q) || "";

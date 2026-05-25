@@ -1,9 +1,9 @@
-import { getAdminSession } from "@/lib/auth";
+import { getAdminSession, hasPermission } from "@/lib/auth";
 import { MediaAssetModel, connectDb } from "@99billiards/db";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  if (!(await getAdminSession())) {
+  if (!hasPermission(await getAdminSession(), "media")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

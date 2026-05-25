@@ -4,6 +4,7 @@ import { AdminActionForm } from "@/components/admin-action-form";
 import { FormModal } from "@/components/admin-modal";
 import { AdminShell, Input, Panel, SaveButton, Select, StatusPill, Textarea } from "@/components/admin-shell";
 import { createPostCategory, deletePostCategory, updatePostCategory } from "../actions";
+import { requirePermission } from "@/lib/auth";
 
 interface AdminPostCategory extends PostCategory {
   _id?: string;
@@ -43,6 +44,7 @@ function CategoryForm({ category }: { category?: AdminPostCategory }) {
 }
 
 export default async function PostCategoriesPage() {
+  await requirePermission("posts");
   const categories = (await getPostCategories({ includeHidden: true })) as AdminPostCategory[];
 
   return (

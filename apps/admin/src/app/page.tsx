@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getBookings, getBranches, getPosts, getProducts, getPromotions } from "@99billiards/db";
 import { AdminShell, Metric, Panel, StatusPill } from "@/components/admin-shell";
+import { requirePermission } from "@/lib/auth";
 
 type BookingRow = {
   _id?: string;
@@ -35,6 +36,7 @@ function statusTone(status?: string) {
 }
 
 export default async function AdminHome() {
+  await requirePermission("dashboard");
   const [branches, products, promotions, posts, bookingsRaw] = await Promise.all([
     getBranches(),
     getProducts(),

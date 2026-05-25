@@ -12,7 +12,7 @@ export async function loginAdmin(formData: FormData) {
     redirect("/login?error=1");
   }
 
-  await setAdminSession({ email });
+  await setAdminSession({ email, name: "Admin", role: "admin", status: "active" });
   redirect("/");
 }
 

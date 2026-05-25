@@ -4,6 +4,7 @@ import { getAdminPostById } from "@99billiards/db";
 import type { Post } from "@99billiards/db/seed";
 import { AdminShell, StatusPill } from "@/components/admin-shell";
 import { ArticlePreviewContent } from "@/components/article-preview-content";
+import { requirePermission } from "@/lib/auth";
 
 interface AdminPost extends Post {
   _id?: string;
@@ -18,6 +19,7 @@ interface PageProps {
 }
 
 export default async function AdminPostPreviewPage({ params }: PageProps) {
+  await requirePermission("posts");
   const { id } = await params;
   const post = (await getAdminPostById(id)) as AdminPost | null;
   if (!post) notFound();

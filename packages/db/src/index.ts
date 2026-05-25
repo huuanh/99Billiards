@@ -179,6 +179,30 @@ const mediaAssetSchema = new Schema(
 );
 mediaAssetSchema.index({ createdAt: -1 });
 
+const adminUserSchema = new Schema(
+  {
+    email: { type: String, required: true, lowercase: true, trim: true },
+    name: String,
+    picture: String,
+    provider: { type: String, default: "google" },
+    googleId: String,
+    role: {
+      type: String,
+      enum: ["admin", "manager", "operator", "pending"],
+      default: "pending",
+    },
+    status: {
+      type: String,
+      enum: ["active", "disabled"],
+      default: "active",
+    },
+    lastLoginAt: Date,
+  },
+  { timestamps: true },
+);
+adminUserSchema.index({ email: 1 }, { unique: true });
+adminUserSchema.index({ role: 1, status: 1 });
+
 export const BranchModel = mongoose.models.Branch || mongoose.model("Branch", branchSchema);
 export const ProductModel = mongoose.models.Product || mongoose.model("Product", productSchema);
 export const PromotionModel =
@@ -191,6 +215,8 @@ export const SiteSettingModel =
   mongoose.models.SiteSetting || mongoose.model("SiteSetting", siteSettingSchema);
 export const MediaAssetModel =
   mongoose.models.MediaAsset || mongoose.model("MediaAsset", mediaAssetSchema);
+export const AdminUserModel =
+  mongoose.models.AdminUser || mongoose.model("AdminUser", adminUserSchema);
 
 function plain<T>(value: T): T {
   return JSON.parse(JSON.stringify(value));
@@ -311,4 +337,9 @@ export async function getSiteSettings() {
 export async function getMediaAssets() {
   if (!(await connectDb())) return [];
   return plain(await MediaAssetModel.find().sort({ createdAt: -1 }).limit(100).lean());
+}
+
+export async function getAdminUsers() {
+  if (!(await connectDb())) return [];
+  return plain(await AdminUserModel.find().sort({ createdAt: -1 }).lean());
 }

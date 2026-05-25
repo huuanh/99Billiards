@@ -88,8 +88,8 @@ export default async function BranchDetailPage({ params }: PageProps) {
       <section className="mx-auto max-w-7xl px-4 py-12 md:px-6">
         <h2 className="text-4xl font-black md:text-6xl">Gallery</h2>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
-          {galleryImages.map((image: string) => (
-            <div key={image} className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-white/10">
+          {galleryImages.map((image: string, index: number) => (
+            <div key={`${image}-${index}`} className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-white/10">
               <Image src={image} alt={branch.name} fill className="object-cover" />
             </div>
           ))}

@@ -9,10 +9,11 @@ import {
   ProductModel,
   PromotionModel,
   SiteSettingModel,
+  AdminUserModel,
   connectDb,
 } from "@99billiards/db";
 import { deleteObjectByPublicUrl, uploadObject } from "@99billiards/db/r2";
-import { requireAdmin } from "@/lib/auth";
+import { requirePermission, type AdminRole } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
 export interface AdminActionState {
@@ -336,7 +337,7 @@ export async function createBranch(
   _prevState: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
+  await requirePermission("branches");
   await requireDbConnection();
 
   const fieldErrors = requiredFields(formData, {
@@ -385,7 +386,7 @@ export async function updateBranch(
   _prevState: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
+  await requirePermission("branches");
   await requireDbConnection();
 
   const id = value(formData, "_id");
@@ -440,7 +441,7 @@ export async function updateBranch(
 }
 
 export async function deleteBranch(formData: FormData) {
-  await requireAdmin();
+  await requirePermission("branches");
   await requireDbConnection();
 
   const existing = await BranchModel.findById(value(formData, "_id")).lean();
@@ -456,7 +457,7 @@ export async function createProduct(
   _prevState: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
+  await requirePermission("products");
   await requireDbConnection();
 
   const fieldErrors = requiredFields(formData, {
@@ -496,7 +497,7 @@ export async function updateProduct(
   _prevState: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
+  await requirePermission("products");
   await requireDbConnection();
 
   const id = value(formData, "_id");
@@ -539,7 +540,7 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(formData: FormData) {
-  await requireAdmin();
+  await requirePermission("products");
   await requireDbConnection();
 
   const existing = await ProductModel.findById(value(formData, "_id")).lean();
@@ -552,7 +553,7 @@ export async function createPromotion(
   _prevState: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
+  await requirePermission("promotions");
   await requireDbConnection();
 
   const fieldErrors = requiredFields(formData, {
@@ -591,7 +592,7 @@ export async function updatePromotion(
   _prevState: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
+  await requirePermission("promotions");
   await requireDbConnection();
 
   const id = value(formData, "_id");
@@ -633,7 +634,7 @@ export async function updatePromotion(
 }
 
 export async function deletePromotion(formData: FormData) {
-  await requireAdmin();
+  await requirePermission("promotions");
   await requireDbConnection();
 
   const existing = await PromotionModel.findById(value(formData, "_id")).lean();
@@ -661,7 +662,7 @@ export async function createPostCategory(
   _prevState: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
+  await requirePermission("posts");
   await requireDbConnection();
 
   const fieldErrors = requiredFields(formData, {
@@ -694,7 +695,7 @@ export async function updatePostCategory(
   _prevState: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
+  await requirePermission("posts");
   await requireDbConnection();
 
   const id = value(formData, "_id");
@@ -735,7 +736,7 @@ export async function updatePostCategory(
 }
 
 export async function deletePostCategory(formData: FormData) {
-  await requireAdmin();
+  await requirePermission("posts");
   await requireDbConnection();
 
   const id = value(formData, "_id");
@@ -757,7 +758,7 @@ export async function createPost(
   _prevState: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
+  await requirePermission("posts");
   await requireDbConnection();
 
   const fieldErrors = requiredFields(formData, {
@@ -809,7 +810,7 @@ export async function updatePost(
   _prevState: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
+  await requirePermission("posts");
   await requireDbConnection();
 
   const id = value(formData, "_id");
@@ -870,7 +871,7 @@ export async function updatePost(
 }
 
 export async function deletePost(formData: FormData) {
-  await requireAdmin();
+  await requirePermission("posts");
   await requireDbConnection();
 
   const existing = await PostModel.findById(value(formData, "_id")).lean();
@@ -880,7 +881,7 @@ export async function deletePost(formData: FormData) {
 }
 
 export async function updateBookingStatus(formData: FormData) {
-  await requireAdmin();
+  await requirePermission("bookings");
   await requireDbConnection();
   await BookingModel.findByIdAndUpdate(value(formData, "id"), {
     status: value(formData, "status"),
@@ -889,7 +890,7 @@ export async function updateBookingStatus(formData: FormData) {
 }
 
 export async function deleteBooking(formData: FormData) {
-  await requireAdmin();
+  await requirePermission("bookings");
   await requireDbConnection();
   await BookingModel.findByIdAndDelete(value(formData, "id"));
   revalidateAdminAndPublic("/bookings");
@@ -899,7 +900,7 @@ export async function updateSiteSettings(
   _prevState: AdminActionState,
   formData: FormData,
 ): Promise<AdminActionState> {
-  await requireAdmin();
+  await requirePermission("settings");
   await requireDbConnection();
 
   const fieldErrors = requiredFields(formData, {
@@ -943,4 +944,39 @@ export async function updateSiteSettings(
     await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
   }
+}
+
+export async function updateAdminUserRole(formData: FormData) {
+  const session = await requirePermission("users");
+  await requireDbConnection();
+
+  const id = value(formData, "_id");
+  const role = value(formData, "role") as AdminRole;
+  const allowedRoles: AdminRole[] = ["admin", "manager", "operator", "pending"];
+  if (!id || !allowedRoles.includes(role)) return;
+
+  await AdminUserModel.findByIdAndUpdate(id, { role });
+  revalidatePath("/users");
+
+  const updatedUser = await AdminUserModel.findById(id).lean();
+  if (updatedUser?.email && String(updatedUser.email).toLowerCase() === session.email.toLowerCase()) {
+    revalidatePath("/");
+  }
+}
+
+export async function updateAdminUserStatus(formData: FormData) {
+  const session = await requirePermission("users");
+  await requireDbConnection();
+
+  const id = value(formData, "_id");
+  const status = value(formData, "status") === "disabled" ? "disabled" : "active";
+  if (!id) return;
+
+  const target = await AdminUserModel.findById(id).lean();
+  if (target?.email && String(target.email).toLowerCase() === session.email.toLowerCase() && status === "disabled") {
+    return;
+  }
+
+  await AdminUserModel.findByIdAndUpdate(id, { status });
+  revalidatePath("/users");
 }

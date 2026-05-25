@@ -5,6 +5,7 @@ import { AdminShell, Input, Panel, SaveButton, Select, StatusPill, Textarea } fr
 import { FormModal } from "@/components/admin-modal";
 import { AdminActionForm } from "@/components/admin-action-form";
 import { ImageUploadField } from "@/components/image-upload-field";
+import { requirePermission } from "@/lib/auth";
 
 interface AdminBranch extends Branch {
   _id?: string;
@@ -98,6 +99,7 @@ function branchStatus(branch: AdminBranch) {
 }
 
 export default async function BranchesPage() {
+  await requirePermission("branches");
   const branches = (await getBranches()) as AdminBranch[];
 
   return (
