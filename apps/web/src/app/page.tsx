@@ -68,7 +68,7 @@ export default async function Home() {
             </Link>
             <nav className="hidden items-center gap-6 text-xs font-bold uppercase tracking-[0.18em] text-white/65 lg:flex">
               {nav.map(([label, href]) => (
-                <Link key={href} href={href} className="focus-ring rounded-full hover:text-[#d6ff3f]">
+                <Link key={href} href={href === "#products" ? "/products" : href} className="focus-ring rounded-full hover:text-[#d6ff3f]">
                   {label}
                 </Link>
               ))}

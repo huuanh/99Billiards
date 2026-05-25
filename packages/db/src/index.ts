@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { branches, postCategories, posts, products, promotions, siteSettings } from "./seed";
+import type { ProductPageSettings, SiteSettings } from "./seed";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -73,18 +73,81 @@ const productSchema = new Schema(
     id: String,
     name: String,
     category: String,
+    categoryId: String,
+    subcategoryId: String,
+    subcategoryIds: [String],
+    brand: String,
+    brandId: String,
     price: Number,
+    compareAtPrice: Number,
     image: String,
+    gallery: [String],
     description: String,
-    branchIds: [String],
+    detailContent: String,
+    detailContentFormat: { type: String, enum: ["plain", "tiptap"], default: "plain" },
+    detailContentJson: Schema.Types.Mixed,
+    detailContentText: String,
     featured: Boolean,
     status: { type: String, default: "published" },
+    stockStatus: { type: String, default: "in-stock" },
+    tags: [String],
+    specs: [String],
+    sortOrder: Number,
   },
   { timestamps: true },
 );
 productSchema.index({ category: 1, status: 1 });
-productSchema.index({ branchIds: 1 });
+productSchema.index({ categoryId: 1, status: 1 });
+productSchema.index({ subcategoryIds: 1 });
+productSchema.index({ brandId: 1 });
 productSchema.index({ name: "text", description: "text" });
+
+const productCategorySchema = new Schema(
+  {
+    id: String,
+    slug: String,
+    name: String,
+    description: String,
+    image: String,
+    status: { type: String, enum: ["active", "hidden"], default: "active" },
+    sortOrder: Number,
+  },
+  { timestamps: true },
+);
+productCategorySchema.index({ slug: 1 }, { unique: true, sparse: true });
+productCategorySchema.index({ status: 1, sortOrder: 1 });
+
+const productSubcategorySchema = new Schema(
+  {
+    id: String,
+    slug: String,
+    name: String,
+    type: { type: String, enum: ["product-type"], default: "product-type" },
+    categoryId: String,
+    description: String,
+    image: String,
+    status: { type: String, enum: ["active", "hidden"], default: "active" },
+    sortOrder: Number,
+  },
+  { timestamps: true },
+);
+productSubcategorySchema.index({ slug: 1 }, { unique: true, sparse: true });
+productSubcategorySchema.index({ categoryId: 1, type: 1, status: 1 });
+
+const productBrandSchema = new Schema(
+  {
+    id: String,
+    slug: String,
+    name: String,
+    logo: String,
+    description: String,
+    status: { type: String, enum: ["active", "hidden"], default: "active" },
+    sortOrder: Number,
+  },
+  { timestamps: true },
+);
+productBrandSchema.index({ slug: 1 }, { unique: true, sparse: true });
+productBrandSchema.index({ status: 1, sortOrder: 1 });
 
 const promotionSchema = new Schema(
   {
@@ -177,6 +240,24 @@ const mediaAssetSchema = new Schema(
   },
   { timestamps: true },
 );
+
+const productPageSettingSchema = new Schema(
+  {
+    heroEyebrow: String,
+    heroTitle: String,
+    heroSubtitle: String,
+    heroImage: String,
+    primaryCtaLabel: String,
+    primaryCtaHref: String,
+    secondaryCtaLabel: String,
+    secondaryCtaHref: String,
+    promoTitle: String,
+    promoText: String,
+    seoTitle: String,
+    seoDescription: String,
+  },
+  { timestamps: true },
+);
 mediaAssetSchema.index({ createdAt: -1 });
 
 const adminUserSchema = new Schema(
@@ -205,6 +286,12 @@ adminUserSchema.index({ role: 1, status: 1 });
 
 export const BranchModel = mongoose.models.Branch || mongoose.model("Branch", branchSchema);
 export const ProductModel = mongoose.models.Product || mongoose.model("Product", productSchema);
+export const ProductCategoryModel =
+  mongoose.models.ProductCategory || mongoose.model("ProductCategory", productCategorySchema);
+export const ProductSubcategoryModel =
+  mongoose.models.ProductSubcategory || mongoose.model("ProductSubcategory", productSubcategorySchema);
+export const ProductBrandModel =
+  mongoose.models.ProductBrand || mongoose.model("ProductBrand", productBrandSchema);
 export const PromotionModel =
   mongoose.models.Promotion || mongoose.model("Promotion", promotionSchema);
 export const PostModel = mongoose.models.Post || mongoose.model("Post", postSchema);
@@ -213,6 +300,8 @@ export const PostCategoryModel =
 export const BookingModel = mongoose.models.Booking || mongoose.model("Booking", bookingSchema);
 export const SiteSettingModel =
   mongoose.models.SiteSetting || mongoose.model("SiteSetting", siteSettingSchema);
+export const ProductPageSettingModel =
+  mongoose.models.ProductPageSetting || mongoose.model("ProductPageSetting", productPageSettingSchema);
 export const MediaAssetModel =
   mongoose.models.MediaAsset || mongoose.model("MediaAsset", mediaAssetSchema);
 export const AdminUserModel =
@@ -231,7 +320,7 @@ function normalizeRows<T extends { _id?: unknown; id?: string; code?: string }>(
 }
 
 export async function getBranches() {
-  if (!(await connectDb())) return branches;
+  if (!(await connectDb())) return [];
   const docs = await BranchModel.find().sort({ sortOrder: 1, createdAt: -1 }).lean();
   return normalizeRows(plain(docs));
 }
@@ -242,25 +331,73 @@ export async function getBranchById(id: string) {
 }
 
 export async function getProducts() {
-  if (!(await connectDb())) return products;
-  const docs = await ProductModel.find({ status: "published" }).sort({ createdAt: -1 }).lean();
+  if (!(await connectDb())) return [];
+  const docs = await ProductModel.find({ status: "published" }).sort({ sortOrder: 1, createdAt: -1 }).lean();
   return normalizeRows(plain(docs));
 }
 
 export async function getAdminProducts() {
-  if (!(await connectDb())) return products;
-  const docs = await ProductModel.find().sort({ createdAt: -1 }).lean();
+  if (!(await connectDb())) return [];
+  const docs = await ProductModel.find().sort({ sortOrder: 1, createdAt: -1 }).lean();
   return normalizeRows(plain(docs));
 }
 
+export async function getProductById(id: string) {
+  const rows = await getProducts();
+  return (
+    rows.find(
+      (product) =>
+        product.id === id ||
+        product._id === id ||
+        String(product.name || "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "") === id,
+    ) || null
+  );
+}
+
+export async function getProductCategories({ includeHidden = false } = {}) {
+  if (!(await connectDb())) return [];
+
+  const filter = includeHidden ? {} : { status: "active" };
+  const docs = await ProductCategoryModel.find(filter).sort({ sortOrder: 1, name: 1 }).lean();
+  return normalizeRows(plain(docs));
+}
+
+export async function getProductSubcategories({ includeHidden = false } = {}) {
+  if (!(await connectDb())) return [];
+
+  const filter = includeHidden ? {} : { status: "active" };
+  const docs = await ProductSubcategoryModel.find(filter).sort({ sortOrder: 1, name: 1 }).lean();
+  return normalizeRows(plain(docs));
+}
+
+export async function getProductBrands({ includeHidden = false } = {}) {
+  if (!(await connectDb())) return [];
+
+  const filter = includeHidden ? {} : { status: "active" };
+  const docs = await ProductBrandModel.find(filter).sort({ sortOrder: 1, name: 1 }).lean();
+  return normalizeRows(plain(docs));
+}
+
+export async function getProductPageSettings() {
+  if (!(await connectDb())) return {} as ProductPageSettings;
+
+  const doc = await ProductPageSettingModel.findOne().sort({ updatedAt: -1 }).lean();
+  return doc ? plain(doc) : ({} as ProductPageSettings);
+}
+
 export async function getPromotions() {
-  if (!(await connectDb())) return promotions;
+  if (!(await connectDb())) return [];
   const docs = await PromotionModel.find({ status: "published" }).sort({ createdAt: -1 }).lean();
   return normalizeRows(plain(docs));
 }
 
 export async function getAdminPromotions() {
-  if (!(await connectDb())) return promotions;
+  if (!(await connectDb())) return [];
   const docs = await PromotionModel.find().sort({ createdAt: -1 }).lean();
   return normalizeRows(plain(docs));
 }
@@ -271,19 +408,19 @@ export async function getPromotionById(id: string) {
 }
 
 export async function getPosts() {
-  if (!(await connectDb())) return posts;
+  if (!(await connectDb())) return [];
   const docs = await PostModel.find({ status: "published" }).sort({ publishedAt: -1 }).lean();
   return normalizeRows(plain(docs));
 }
 
 export async function getAdminPosts() {
-  if (!(await connectDb())) return posts;
+  if (!(await connectDb())) return [];
   const docs = await PostModel.find().sort({ publishedAt: -1, createdAt: -1 }).lean();
   return normalizeRows(plain(docs));
 }
 
 export async function getPostCategories({ includeHidden = false } = {}) {
-  if (!(await connectDb())) return includeHidden ? postCategories : postCategories.filter((category) => category.status !== "hidden");
+  if (!(await connectDb())) return [];
 
   const filter = includeHidden ? {} : { status: "active" };
   const docs = await PostCategoryModel.find(filter).sort({ sortOrder: 1, name: 1 }).lean();
@@ -302,7 +439,7 @@ export async function getPostCategories({ includeHidden = false } = {}) {
       }));
   }
 
-  return includeHidden ? postCategories : postCategories.filter((category) => category.status !== "hidden");
+  return [];
 }
 
 export async function getPostById(id: string) {
@@ -323,11 +460,10 @@ export async function getBookings() {
 export async function getSiteSettings() {
   if (!(await connectDb())) {
     return {
-      ...siteSettings,
-      gaId: process.env.NEXT_PUBLIC_GA_ID || siteSettings.gaId,
-      metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID || siteSettings.metaPixelId,
-      tiktokPixelId: process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID || siteSettings.tiktokPixelId,
-    };
+      gaId: process.env.NEXT_PUBLIC_GA_ID || "",
+      metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID || "",
+      tiktokPixelId: process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID || "",
+    } as SiteSettings;
   }
 
   const doc = await SiteSettingModel.findOne().sort({ updatedAt: -1 }).lean();

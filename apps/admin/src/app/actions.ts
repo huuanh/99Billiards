@@ -6,7 +6,11 @@ import {
   MediaAssetModel,
   PostCategoryModel,
   PostModel,
+  ProductCategoryModel,
+  ProductBrandModel,
   ProductModel,
+  ProductPageSettingModel,
+  ProductSubcategoryModel,
   PromotionModel,
   SiteSettingModel,
   AdminUserModel,
@@ -29,6 +33,13 @@ function value(formData: FormData, key: string) {
 function csv(formData: FormData, key: string) {
   return value(formData, key)
     .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function listValues(formData: FormData, key: string) {
+  return value(formData, key)
+    .split(/\r?\n|,/)
     .map((item) => item.trim())
     .filter(Boolean);
 }
@@ -347,7 +358,7 @@ export async function createBranch(
     address: "Dia chi",
   });
   if (Object.keys(fieldErrors).length) return fieldError("Vui long dien cac truong bat buoc.", fieldErrors);
-  const imagePayloadError = validateImagePayload(formData, ["image", "gallery"]);
+  const imagePayloadError = validateImagePayload(formData, ["image", "gallery", "contentInlineImages"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
 
   const uploadedUrls: string[] = [];
@@ -462,28 +473,49 @@ export async function createProduct(
 
   const fieldErrors = requiredFields(formData, {
     name: "Ten san pham",
-    category: "Nhom",
   });
   const price = numberValue(formData, "price", "Gia");
   if (price.error) fieldErrors.price = price.error;
   if (Object.keys(fieldErrors).length) return fieldError("Vui long kiem tra thong tin san pham.", fieldErrors);
-  const imagePayloadError = validateImagePayload(formData, ["image"]);
+  const imagePayloadError = validateImagePayload(formData, ["image", "gallery"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
 
   const uploadedUrls: string[] = [];
 
   try {
     const image = await resolveImageField(formData, "image", uploadedUrls);
+    const gallery = await resolveGalleryField(formData, "gallery", uploadedUrls);
+    const id = value(formData, "id") || slugify(value(formData, "name"));
+    const detailContent = await resolvePostContent(formData, uploadedUrls);
+    if (!detailContent.ok) {
+      await cleanupUploadedOnFailure(uploadedUrls);
+      return fieldError(detailContent.message, { content: detailContent.message });
+    }
 
     await ProductModel.create({
+      id,
       name: value(formData, "name"),
-      category: value(formData, "category"),
+      category: value(formData, "categoryId"),
+      categoryId: value(formData, "categoryId"),
+      subcategoryId: value(formData, "subcategoryId"),
+      subcategoryIds: value(formData, "subcategoryId") ? [value(formData, "subcategoryId")] : [],
+      brand: value(formData, "brandId"),
+      brandId: value(formData, "brandId"),
       price: price.value,
+      compareAtPrice: numberValue(formData, "compareAtPrice", "Gia niem yet").value || undefined,
       image,
-      description: value(formData, "description"),
-      branchIds: multiValues(formData, "branchIds"),
+      gallery,
+      description: value(formData, "description") || detailContent.value.contentText.slice(0, 220),
+      detailContent: detailContent.value.content,
+      detailContentFormat: detailContent.value.contentFormat,
+      detailContentText: detailContent.value.contentText,
+      ...(detailContent.value.contentFormat === "tiptap" ? { detailContentJson: detailContent.value.contentJson } : {}),
       featured: formData.get("featured") === "on",
       status: value(formData, "status") || "draft",
+      stockStatus: value(formData, "stockStatus") || "in-stock",
+      tags: csv(formData, "tags"),
+      specs: listValues(formData, "specs"),
+      sortOrder: Number(value(formData, "sortOrder") || 0),
     });
     revalidateAdminAndPublic("/products");
     return success("Da tao san pham moi.");
@@ -505,12 +537,11 @@ export async function updateProduct(
 
   const fieldErrors = requiredFields(formData, {
     name: "Ten san pham",
-    category: "Nhom",
   });
   const price = numberValue(formData, "price", "Gia");
   if (price.error) fieldErrors.price = price.error;
   if (Object.keys(fieldErrors).length) return fieldError("Vui long kiem tra thong tin san pham.", fieldErrors);
-  const imagePayloadError = validateImagePayload(formData, ["image"]);
+  const imagePayloadError = validateImagePayload(formData, ["image", "gallery", "contentInlineImages"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
 
   const existing = await ProductModel.findById(id).lean();
@@ -518,19 +549,50 @@ export async function updateProduct(
 
   try {
     const image = await resolveImageField(formData, "image", uploadedUrls);
+    const gallery = await resolveGalleryField(formData, "gallery", uploadedUrls);
+    const detailContent = await resolvePostContent(formData, uploadedUrls);
+    if (!detailContent.ok) {
+      await cleanupUploadedOnFailure(uploadedUrls);
+      return fieldError(detailContent.message, { content: detailContent.message });
+    }
 
     await ProductModel.findByIdAndUpdate(id, {
-      name: value(formData, "name"),
-      category: value(formData, "category"),
-      price: price.value,
-      image,
-      description: value(formData, "description"),
-      branchIds: multiValues(formData, "branchIds"),
-      featured: formData.get("featured") === "on",
-      status: value(formData, "status") || "published",
+      $set: {
+        id: value(formData, "id") || String(existing?.id || "") || slugify(value(formData, "name")),
+        name: value(formData, "name"),
+        category: value(formData, "categoryId"),
+        categoryId: value(formData, "categoryId"),
+        subcategoryId: value(formData, "subcategoryId"),
+        subcategoryIds: value(formData, "subcategoryId") ? [value(formData, "subcategoryId")] : [],
+        brand: value(formData, "brandId"),
+        brandId: value(formData, "brandId"),
+        price: price.value,
+        compareAtPrice: numberValue(formData, "compareAtPrice", "Gia niem yet").value || undefined,
+        image,
+        gallery,
+        description: value(formData, "description") || detailContent.value.contentText.slice(0, 220),
+        detailContent: detailContent.value.content,
+        detailContentFormat: detailContent.value.contentFormat,
+        detailContentText: detailContent.value.contentText,
+        ...(detailContent.value.contentFormat === "tiptap" ? { detailContentJson: detailContent.value.contentJson } : {}),
+        featured: formData.get("featured") === "on",
+        status: value(formData, "status") || "published",
+        stockStatus: value(formData, "stockStatus") || "in-stock",
+        tags: csv(formData, "tags"),
+        specs: listValues(formData, "specs"),
+        sortOrder: Number(value(formData, "sortOrder") || 0),
+      },
+      ...(detailContent.value.contentFormat === "plain" ? { $unset: { detailContentJson: "" } } : {}),
     });
 
-    await cleanupRemovedMedia([String(existing?.image || "")], [image]);
+    await cleanupRemovedMedia(
+      [
+        String(existing?.image || ""),
+        ...((existing?.gallery as string[] | undefined) || []),
+        ...collectTiptapImageUrls(existing?.detailContentJson),
+      ],
+      [image, ...gallery, ...collectTiptapImageUrls(detailContent.value.contentJson)],
+    );
     revalidateAdminAndPublic("/products");
     return success("Da cap nhat san pham.");
   } catch (error) {
@@ -545,8 +607,346 @@ export async function deleteProduct(formData: FormData) {
 
   const existing = await ProductModel.findById(value(formData, "_id")).lean();
   await ProductModel.findByIdAndDelete(value(formData, "_id"));
-  await cleanupRemovedMedia([String(existing?.image || "")]);
+  await cleanupRemovedMedia([
+    String(existing?.image || ""),
+    ...((existing?.gallery as string[] | undefined) || []),
+    ...collectTiptapImageUrls(existing?.detailContentJson),
+  ]);
   revalidateAdminAndPublic("/products");
+}
+
+export async function createProductCategory(
+  _prevState: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  await requirePermission("products");
+  await requireDbConnection();
+
+  const fieldErrors = requiredFields(formData, { name: "Ten danh muc" });
+  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin danh muc.", fieldErrors);
+  const imagePayloadError = validateImagePayload(formData, ["image"]);
+  if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
+
+  const name = value(formData, "name");
+  const slug = value(formData, "slug") || slugify(name);
+  if (!slug) return fieldError("Slug danh muc chua hop le.", { slug: "Slug danh muc chua hop le." });
+
+  const uploadedUrls: string[] = [];
+  try {
+    const image = await resolveImageField(formData, "image", uploadedUrls);
+    await ProductCategoryModel.create({
+      name,
+      slug,
+      id: slug,
+      description: value(formData, "description"),
+      image,
+      status: value(formData, "status") || "active",
+      sortOrder: Number(value(formData, "sortOrder") || 0),
+    });
+    revalidateAdminAndPublic("/product-categories");
+    revalidateAdminAndPublic("/products");
+    return success("Da tao danh muc san pham.");
+  } catch (error) {
+    await cleanupUploadedOnFailure(uploadedUrls);
+    return mutationError(error);
+  }
+}
+
+export async function updateProductCategory(
+  _prevState: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  await requirePermission("products");
+  await requireDbConnection();
+
+  const id = value(formData, "_id");
+  if (!id) return fieldError("Thieu ID ban ghi.", { _id: "Thieu ID ban ghi." });
+  const fieldErrors = requiredFields(formData, { name: "Ten danh muc" });
+  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin danh muc.", fieldErrors);
+  const imagePayloadError = validateImagePayload(formData, ["image"]);
+  if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
+
+  const name = value(formData, "name");
+  const slug = value(formData, "slug") || slugify(name);
+  if (!slug) return fieldError("Slug danh muc chua hop le.", { slug: "Slug danh muc chua hop le." });
+
+  const existing = await ProductCategoryModel.findById(id).lean();
+  const uploadedUrls: string[] = [];
+  try {
+    const image = await resolveImageField(formData, "image", uploadedUrls);
+    await ProductCategoryModel.findByIdAndUpdate(id, {
+      name,
+      slug,
+      id: slug,
+      description: value(formData, "description"),
+      image,
+      status: value(formData, "status") || "active",
+      sortOrder: Number(value(formData, "sortOrder") || 0),
+    });
+    await cleanupRemovedMedia([String(existing?.image || "")], [image]);
+    revalidateAdminAndPublic("/product-categories");
+    revalidateAdminAndPublic("/products");
+    return success("Da cap nhat danh muc san pham.");
+  } catch (error) {
+    await cleanupUploadedOnFailure(uploadedUrls);
+    return mutationError(error);
+  }
+}
+
+export async function deleteProductCategory(formData: FormData) {
+  await requirePermission("products");
+  await requireDbConnection();
+
+  const id = value(formData, "_id");
+  const existing = await ProductCategoryModel.findById(id).lean();
+  if (!existing) return;
+
+  const linkedProducts = await ProductModel.countDocuments({ categoryId: String(existing.id || existing.slug || "") });
+  if (linkedProducts > 0) {
+    await ProductCategoryModel.findByIdAndUpdate(id, { status: "hidden" });
+  } else {
+    await ProductCategoryModel.findByIdAndDelete(id);
+    await cleanupRemovedMedia([String(existing.image || "")]);
+  }
+
+  revalidateAdminAndPublic("/product-categories");
+  revalidateAdminAndPublic("/products");
+}
+
+export async function createProductSubcategory(
+  _prevState: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  await requirePermission("products");
+  await requireDbConnection();
+
+  const fieldErrors = requiredFields(formData, { name: "Ten danh muc con" });
+  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin danh muc con.", fieldErrors);
+
+  const name = value(formData, "name");
+  const slug = value(formData, "slug") || slugify(name);
+  if (!slug) return fieldError("Slug danh muc con chua hop le.", { slug: "Slug danh muc con chua hop le." });
+
+  try {
+    await ProductSubcategoryModel.create({
+      name,
+      slug,
+      id: slug,
+      type: "product-type",
+      categoryId: value(formData, "categoryId"),
+      description: value(formData, "description"),
+      status: value(formData, "status") || "active",
+      sortOrder: Number(value(formData, "sortOrder") || 0),
+    });
+    revalidateAdminAndPublic("/product-subcategories");
+    revalidateAdminAndPublic("/products");
+    return success("Da tao danh muc con.");
+  } catch (error) {
+    return mutationError(error);
+  }
+}
+
+export async function updateProductSubcategory(
+  _prevState: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  await requirePermission("products");
+  await requireDbConnection();
+
+  const id = value(formData, "_id");
+  if (!id) return fieldError("Thieu ID ban ghi.", { _id: "Thieu ID ban ghi." });
+  const fieldErrors = requiredFields(formData, { name: "Ten danh muc con" });
+  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin danh muc con.", fieldErrors);
+
+  const name = value(formData, "name");
+  const slug = value(formData, "slug") || slugify(name);
+  if (!slug) return fieldError("Slug danh muc con chua hop le.", { slug: "Slug danh muc con chua hop le." });
+
+  try {
+    await ProductSubcategoryModel.findByIdAndUpdate(id, {
+      name,
+      slug,
+      id: slug,
+      type: "product-type",
+      categoryId: value(formData, "categoryId"),
+      description: value(formData, "description"),
+      status: value(formData, "status") || "active",
+      sortOrder: Number(value(formData, "sortOrder") || 0),
+    });
+    revalidateAdminAndPublic("/product-subcategories");
+    revalidateAdminAndPublic("/products");
+    return success("Da cap nhat danh muc con.");
+  } catch (error) {
+    return mutationError(error);
+  }
+}
+
+export async function deleteProductSubcategory(formData: FormData) {
+  await requirePermission("products");
+  await requireDbConnection();
+
+  const id = value(formData, "_id");
+  const existing = await ProductSubcategoryModel.findById(id).lean();
+  if (!existing) return;
+
+  const key = String(existing.id || existing.slug || "");
+  const linkedProducts = await ProductModel.countDocuments({
+    $or: [{ subcategoryId: key }, { subcategoryIds: key }],
+  });
+  if (linkedProducts > 0) {
+    await ProductSubcategoryModel.findByIdAndUpdate(id, { status: "hidden" });
+  } else {
+    await ProductSubcategoryModel.findByIdAndDelete(id);
+  }
+
+  revalidateAdminAndPublic("/product-subcategories");
+  revalidateAdminAndPublic("/products");
+}
+
+export async function createProductBrand(
+  _prevState: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  await requirePermission("products");
+  await requireDbConnection();
+
+  const fieldErrors = requiredFields(formData, { name: "Ten nhan hang" });
+  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin nhan hang.", fieldErrors);
+  const imagePayloadError = validateImagePayload(formData, ["logo"]);
+  if (imagePayloadError) return fieldError(imagePayloadError, { logo: imagePayloadError });
+
+  const name = value(formData, "name");
+  const slug = value(formData, "slug") || slugify(name);
+  if (!slug) return fieldError("Slug nhan hang chua hop le.", { slug: "Slug nhan hang chua hop le." });
+
+  const uploadedUrls: string[] = [];
+  try {
+    const logo = await resolveImageField(formData, "logo", uploadedUrls);
+    await ProductBrandModel.create({
+      name,
+      slug,
+      id: slug,
+      logo,
+      description: value(formData, "description"),
+      status: value(formData, "status") || "active",
+      sortOrder: Number(value(formData, "sortOrder") || 0),
+    });
+    revalidateAdminAndPublic("/product-brands");
+    revalidateAdminAndPublic("/products");
+    return success("Da tao nhan hang.");
+  } catch (error) {
+    await cleanupUploadedOnFailure(uploadedUrls);
+    return mutationError(error);
+  }
+}
+
+export async function updateProductBrand(
+  _prevState: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  await requirePermission("products");
+  await requireDbConnection();
+
+  const id = value(formData, "_id");
+  if (!id) return fieldError("Thieu ID ban ghi.", { _id: "Thieu ID ban ghi." });
+  const fieldErrors = requiredFields(formData, { name: "Ten nhan hang" });
+  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin nhan hang.", fieldErrors);
+  const imagePayloadError = validateImagePayload(formData, ["logo"]);
+  if (imagePayloadError) return fieldError(imagePayloadError, { logo: imagePayloadError });
+
+  const name = value(formData, "name");
+  const slug = value(formData, "slug") || slugify(name);
+  if (!slug) return fieldError("Slug nhan hang chua hop le.", { slug: "Slug nhan hang chua hop le." });
+
+  const existing = await ProductBrandModel.findById(id).lean();
+  const uploadedUrls: string[] = [];
+  try {
+    const logo = await resolveImageField(formData, "logo", uploadedUrls);
+    await ProductBrandModel.findByIdAndUpdate(id, {
+      name,
+      slug,
+      id: slug,
+      logo,
+      description: value(formData, "description"),
+      status: value(formData, "status") || "active",
+      sortOrder: Number(value(formData, "sortOrder") || 0),
+    });
+    await cleanupRemovedMedia([String(existing?.logo || "")], [logo]);
+    revalidateAdminAndPublic("/product-brands");
+    revalidateAdminAndPublic("/products");
+    return success("Da cap nhat nhan hang.");
+  } catch (error) {
+    await cleanupUploadedOnFailure(uploadedUrls);
+    return mutationError(error);
+  }
+}
+
+export async function deleteProductBrand(formData: FormData) {
+  await requirePermission("products");
+  await requireDbConnection();
+
+  const id = value(formData, "_id");
+  const existing = await ProductBrandModel.findById(id).lean();
+  if (!existing) return;
+
+  const key = String(existing.id || existing.slug || "");
+  const linkedProducts = await ProductModel.countDocuments({ brandId: key });
+  if (linkedProducts > 0) {
+    await ProductBrandModel.findByIdAndUpdate(id, { status: "hidden" });
+  } else {
+    await ProductBrandModel.findByIdAndDelete(id);
+    await cleanupRemovedMedia([String(existing.logo || "")]);
+  }
+
+  revalidateAdminAndPublic("/product-brands");
+  revalidateAdminAndPublic("/products");
+}
+
+export async function updateProductPageSettings(
+  _prevState: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  await requirePermission("products");
+  await requireDbConnection();
+
+  const fieldErrors = requiredFields(formData, {
+    heroTitle: "Tieu de hero",
+    heroSubtitle: "Mo ta hero",
+  });
+  if (Object.keys(fieldErrors).length) return fieldError("Vui long kiem tra noi dung hien thi.", fieldErrors);
+  const imagePayloadError = validateImagePayload(formData, ["heroImage"]);
+  if (imagePayloadError) return fieldError(imagePayloadError, { heroImage: imagePayloadError });
+
+  const existing = await ProductPageSettingModel.findOne().sort({ updatedAt: -1 }).lean();
+  const uploadedUrls: string[] = [];
+  try {
+    const heroImage = await resolveImageField(formData, "heroImage", uploadedUrls);
+    await ProductPageSettingModel.findOneAndUpdate(
+      {},
+      {
+        heroEyebrow: value(formData, "heroEyebrow"),
+        heroTitle: value(formData, "heroTitle"),
+        heroSubtitle: value(formData, "heroSubtitle"),
+        heroImage,
+        primaryCtaLabel: value(formData, "primaryCtaLabel"),
+        primaryCtaHref: value(formData, "primaryCtaHref"),
+        secondaryCtaLabel: value(formData, "secondaryCtaLabel"),
+        secondaryCtaHref: value(formData, "secondaryCtaHref"),
+        promoTitle: value(formData, "promoTitle"),
+        promoText: value(formData, "promoText"),
+        seoTitle: value(formData, "seoTitle"),
+        seoDescription: value(formData, "seoDescription"),
+      },
+      { upsert: true, new: true },
+    );
+    await cleanupRemovedMedia([String(existing?.heroImage || "")], [heroImage]);
+    revalidateAdminAndPublic("/product-display");
+    revalidateAdminAndPublic("/products");
+    return success("Da luu hien thi trang san pham.");
+  } catch (error) {
+    await cleanupUploadedOnFailure(uploadedUrls);
+    return mutationError(error);
+  }
 }
 
 export async function createPromotion(
