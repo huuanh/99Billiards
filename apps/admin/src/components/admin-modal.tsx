@@ -1,5 +1,6 @@
 "use client";
 
+import { FontAwesomeIcon } from "@99billiards/ui";
 import { useEffect, useState } from "react";
 
 export function FormModal({
@@ -17,6 +18,7 @@ export function FormModal({
 }) {
   const [open, setOpen] = useState(false);
   const [notice, setNotice] = useState("");
+  const triggerIcon = trigger.toLowerCase().includes("sua") ? "pen-to-square" : "cart-shopping";
 
   function close(message?: string) {
     setOpen(false);
@@ -48,7 +50,10 @@ export function FormModal({
             : "focus-ring min-h-9 rounded-md border border-[#cfd5c8] bg-white px-3 py-2 text-sm font-bold text-[#111713]"
         }
       >
-        {trigger}
+        <span className="inline-flex items-center gap-2">
+          <FontAwesomeIcon icon={triggerIcon} className="h-3.5 w-3.5" />
+          {trigger}
+        </span>
       </button>
 
       {notice ? (
@@ -73,7 +78,10 @@ export function FormModal({
                 onClick={() => close()}
                 className="focus-ring min-h-10 rounded-md border border-[#cfd5c8] bg-[#111713] px-4 py-2 text-sm font-bold text-white"
               >
-                Dong
+                <span className="inline-flex items-center gap-2">
+                  <FontAwesomeIcon icon="xmark" className="h-3.5 w-3.5" />
+                  Dong
+                </span>
               </button>
             </header>
 

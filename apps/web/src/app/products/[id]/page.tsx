@@ -8,11 +8,13 @@ import {
   getProductBrands,
   getProductCategories,
   getProducts,
-  getProductSubcategories,
 } from "@99billiards/db";
-import type { Product, ProductBrand, ProductCategory, ProductSubcategory } from "@99billiards/db/seed";
+import type { Product, ProductBrand, ProductCategory } from "@99billiards/db/seed";
 import { siteConfig } from "@99billiards/config";
-import { formatCurrency } from "@99billiards/ui";
+import { FontAwesomeIcon, formatCurrency } from "@99billiards/ui";
+import { ProductGallerySlider } from "@/components/product-gallery-slider";
+import { AddToCartButton } from "@/components/add-to-cart-button";
+import { CartLink } from "@/components/cart-link";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -27,25 +29,23 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [product, products, categories, subcategories, brands] = await Promise.all([
+  const [product, products, categories, brands] = await Promise.all([
     getProductById(id) as Promise<Product | null>,
     getProducts() as Promise<Product[]>,
     getProductCategories() as Promise<ProductCategory[]>,
-    getProductSubcategories() as Promise<ProductSubcategory[]>,
     getProductBrands() as Promise<ProductBrand[]>,
   ]);
 
   if (!product) notFound();
 
   const categoryNames = new Map(categories.map((category) => [category.id, category.name]));
-  const subcategoryNames = new Map(subcategories.map((subcategory) => [subcategory.id, subcategory.name]));
   const brandById = new Map(brands.map((brand) => [brand.id, brand]));
   const category = categoryNames.get(product.categoryId || "") || product.category;
   const brandRecord = brandById.get(product.brandId || "");
   const brand = brandRecord?.name || product.brand || "";
-  const productType = subcategoryNames.get(product.subcategoryId || "") || "";
   const gallery = uniqueUrls([product.image, ...(product.gallery || [])]);
-  const mainImage = gallery[0] || product.image;
+  const stockLabel =
+    product.stockStatus === "out-of-stock" ? "Het hang" : product.stockStatus === "preorder" ? "Dat truoc" : "Con hang";
   const relatedProducts = products
     .filter((item) => item.id !== product.id && (item.categoryId === product.categoryId || item.brandId === product.brandId))
     .slice(0, 4);
@@ -62,8 +62,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <Link href="/products" className="rounded-full text-[#00684a]">San pham</Link>
             <Link href="/#branches" className="rounded-full hover:text-[#00684a]">Co so</Link>
             <Link href="/#promotions" className="rounded-full hover:text-[#00684a]">Uu dai</Link>
+            <CartLink />
           </nav>
-          <a href={`tel:${siteConfig.hotline.replaceAll(" ", "")}`} className="focus-ring rounded-full bg-[#111713] px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-white">
+          <a href={`tel:${siteConfig.hotline.replaceAll(" ", "")}`} className="focus-ring rounded-full bg-[#00684a] px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-white">
             {siteConfig.hotline}
           </a>
         </div>
@@ -85,41 +86,22 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <span>/</span>
           <span className="text-black">{product.name}</span>
         </nav>
+        <h1 className="mt-7 text-4xl font-black leading-tight md:text-6xl lg:text-7xl">{product.name}</h1>
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-10 px-4 pb-14 md:px-6 lg:grid-cols-[0.96fr_1.04fr]">
-        <div className="grid gap-4">
-          <div className="relative aspect-square overflow-hidden border border-black/10 bg-white">
-            {mainImage ? <Image src={mainImage} alt={product.name} fill priority className="object-cover" /> : null}
-          </div>
-          {gallery.length > 1 ? (
-            <div className="grid grid-cols-4 gap-3 md:grid-cols-6">
-              {gallery.map((image, index) => (
-                <a key={image} href={image} target="_blank" rel="noreferrer" className="relative aspect-square overflow-hidden border border-black/10 bg-white">
-                  <Image src={image} alt={`${product.name} ${index + 1}`} fill className="object-cover transition hover:scale-105" />
-                </a>
-              ))}
-            </div>
-          ) : null}
-        </div>
+        <ProductGallerySlider images={gallery} productName={product.name} />
 
         <div>
-          <p className="inline-flex border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-black uppercase tracking-[0.14em] text-emerald-800">
-            {product.stockStatus === "out-of-stock" ? "Het hang" : product.stockStatus === "preorder" ? "Dat truoc" : "Con hang"}
-          </p>
-          <h1 className="mt-5 text-4xl font-black leading-tight md:text-6xl">{product.name}</h1>
-          <div className="mt-5 grid gap-2 border-y border-black/10 py-4 text-sm font-bold text-black/62 sm:grid-cols-2">
-            {brand ? <p>Thuong hieu: <span className="text-black">{brand}</span></p> : null}
-            {product.id ? <p>Ma: <span className="text-black">{product.id}</span></p> : null}
-            {category ? <p>Chat lieu/nhom: <span className="text-black">{category}</span></p> : null}
-            {productType ? <p>Loai: <span className="text-black">{productType}</span></p> : null}
-          </div>
-
-          <div className="mt-6 flex flex-wrap items-end gap-4">
-            <p className="text-4xl font-black text-[#0c3b2d]">{formatCurrency(product.price)}</p>
+          <div className="flex flex-wrap items-end gap-4">
+            <p className="text-4xl font-black leading-tight text-[#0c3b2d] md:text-6xl">{formatCurrency(product.price)}</p>
             {product.compareAtPrice && product.compareAtPrice > product.price ? (
-              <p className="pb-1 text-lg font-bold text-black/38 line-through">{formatCurrency(product.compareAtPrice)}</p>
+              <p className="pb-2 text-lg font-bold text-black/38 line-through">{formatCurrency(product.compareAtPrice)}</p>
             ) : null}
+          </div>
+          <div className="mt-5 grid gap-2 border-y border-black/10 py-4 text-sm font-bold text-black/62 sm:grid-cols-2">
+            <p>Thuong hieu: <span className="text-black">{brand || "-"}</span></p>
+            <p>Tinh trang: <span className="text-black">{stockLabel}</span></p>
           </div>
 
           {product.specs?.length ? (
@@ -133,35 +115,22 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             </ul>
           ) : null}
 
-          {brandRecord ? (
-            <div className="mt-6 flex gap-4 border border-black/10 bg-white p-4">
-              {brandRecord.logo ? (
-                <div className="relative h-16 w-24 shrink-0 overflow-hidden border border-black/10 bg-white">
-                  <Image src={brandRecord.logo} alt={brandRecord.name} fill className="object-contain p-2" />
-                </div>
-              ) : null}
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-[#00684a]">Nhan hang</p>
-                <h2 className="mt-1 text-xl font-black">{brandRecord.name}</h2>
-                {brandRecord.description ? <p className="mt-2 text-sm leading-6 text-black/60">{brandRecord.description}</p> : null}
-              </div>
-            </div>
-          ) : null}
-
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-            <a href={`tel:${siteConfig.hotline.replaceAll(" ", "")}`} className="focus-ring bg-[#111713] px-7 py-4 text-center text-sm font-black uppercase tracking-[0.14em] text-white">
-              Goi tu van mua hang
-            </a>
-            <Link href="/products" className="focus-ring border border-black/15 bg-white px-7 py-4 text-center text-sm font-black uppercase tracking-[0.14em] text-black">
-              Tiep tuc xem
-            </Link>
+          <div className="mt-7">
+            <AddToCartButton
+              product={{
+                productId: product.id,
+                name: product.name,
+                image: product.image,
+                price: product.price,
+              }}
+            />
           </div>
 
-          <div className="mt-7 grid gap-3 border border-black/10 bg-[#15120d] p-5 text-sm font-bold text-white md:grid-cols-2">
-            <p>Van chuyen hoa toc trong Ha Noi</p>
-            <p>Ho tro bao duong ve sinh mien phi</p>
-            <p>Qua tang hap dan cho don hang</p>
-            <p>Bao mat thong tin khach hang</p>
+          <div className="mt-7 grid gap-3 border border-[#00684a]/20 bg-[#00684a] p-5 text-sm font-bold text-white md:grid-cols-2">
+            <p className="inline-flex items-center gap-2"><FontAwesomeIcon icon="truck-fast" className="h-4 w-4" />Van chuyen hoa toc trong Ha Noi</p>
+            <p className="inline-flex items-center gap-2"><FontAwesomeIcon icon="shield-halved" className="h-4 w-4" />Ho tro bao duong ve sinh mien phi</p>
+            <p className="inline-flex items-center gap-2"><FontAwesomeIcon icon="gift" className="h-4 w-4" />Qua tang hap dan cho don hang</p>
+            <p className="inline-flex items-center gap-2"><FontAwesomeIcon icon="shield-halved" className="h-4 w-4" />Bao mat thong tin khach hang</p>
           </div>
         </div>
       </section>
@@ -174,12 +143,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </article>
           <aside className="border border-black/10 bg-[#f7f4ec] p-5">
             <h3 className="text-xl font-black">Chinh sach bao hanh</h3>
-            <ul className="mt-4 grid gap-3 text-sm font-bold leading-6 text-black/62">
-              <li>Ho tro kiem tra tinh trang san pham khi nhan hang.</li>
-              <li>San pham loi nha san xuat duoc tiep nhan theo chinh sach tung hang.</li>
-              <li>Khong bao hanh hao mon tu nhien, tray xuoc hoac loi do su dung sai cach.</li>
-              <li>Can quay video khui hang de doi soat khi can ho tro.</li>
-            </ul>
+            <WarrantyPolicy content={product.warrantyPolicy} />
           </aside>
         </div>
       </section>
@@ -246,6 +210,29 @@ function ProductDetailContent({ product }: { product: Product }) {
         <p key={paragraph}>{paragraph}</p>
       ))}
     </div>
+  );
+}
+
+function WarrantyPolicy({ content }: { content?: string }) {
+  const items = (content || "")
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  if (!items.length) {
+    return (
+      <p className="mt-4 text-sm font-bold leading-6 text-black/55">
+        Chua cap nhat chinh sach bao hanh cho san pham nay.
+      </p>
+    );
+  }
+
+  return (
+    <ul className="mt-4 grid gap-3 text-sm font-bold leading-6 text-black/62">
+      {items.map((item) => (
+        <li key={item}>{item}</li>
+      ))}
+    </ul>
   );
 }
 

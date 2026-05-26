@@ -12,6 +12,7 @@ import {
   ProductPageSettingModel,
   ProductSubcategoryModel,
   PromotionModel,
+  SalesOrderModel,
   SiteSettingModel,
   AdminUserModel,
   connectDb,
@@ -510,6 +511,7 @@ export async function createProduct(
       detailContentFormat: detailContent.value.contentFormat,
       detailContentText: detailContent.value.contentText,
       ...(detailContent.value.contentFormat === "tiptap" ? { detailContentJson: detailContent.value.contentJson } : {}),
+      warrantyPolicy: value(formData, "warrantyPolicy"),
       featured: formData.get("featured") === "on",
       status: value(formData, "status") || "draft",
       stockStatus: value(formData, "stockStatus") || "in-stock",
@@ -575,6 +577,7 @@ export async function updateProduct(
         detailContentFormat: detailContent.value.contentFormat,
         detailContentText: detailContent.value.contentText,
         ...(detailContent.value.contentFormat === "tiptap" ? { detailContentJson: detailContent.value.contentJson } : {}),
+        warrantyPolicy: value(formData, "warrantyPolicy"),
         featured: formData.get("featured") === "on",
         status: value(formData, "status") || "published",
         stockStatus: value(formData, "stockStatus") || "in-stock",
@@ -1294,6 +1297,22 @@ export async function deleteBooking(formData: FormData) {
   await requireDbConnection();
   await BookingModel.findByIdAndDelete(value(formData, "id"));
   revalidateAdminAndPublic("/bookings");
+}
+
+export async function updateSalesOrderStatus(formData: FormData) {
+  await requirePermission("sales");
+  await requireDbConnection();
+  await SalesOrderModel.findByIdAndUpdate(value(formData, "id"), {
+    status: value(formData, "status"),
+  });
+  revalidatePath("/sales-orders");
+}
+
+export async function deleteSalesOrder(formData: FormData) {
+  await requirePermission("sales");
+  await requireDbConnection();
+  await SalesOrderModel.findByIdAndDelete(value(formData, "id"));
+  revalidatePath("/sales-orders");
 }
 
 export async function updateSiteSettings(

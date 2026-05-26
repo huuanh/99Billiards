@@ -1,5 +1,6 @@
 import { getProductCategories, getProductSubcategories } from "@99billiards/db";
 import type { ProductCategory, ProductSubcategory } from "@99billiards/db/seed";
+import { FontAwesomeIcon } from "@99billiards/ui";
 import { AdminActionForm } from "@/components/admin-action-form";
 import { FormModal } from "@/components/admin-modal";
 import { AdminShell, Input, Panel, SaveButton, Select, StatusPill, Textarea } from "@/components/admin-shell";
@@ -103,7 +104,10 @@ export default async function ProductSubcategoriesPage() {
                         <form action={deleteProductSubcategory}>
                           <input type="hidden" name="_id" value={subcategory._id} />
                           <button className="min-h-9 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-bold text-red-700">
-                            Xoa
+                            <span className="inline-flex items-center gap-2">
+                              <FontAwesomeIcon icon="trash" className="h-3.5 w-3.5" />
+                              Xoa
+                            </span>
                           </button>
                         </form>
                       </div>

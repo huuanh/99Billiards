@@ -13,6 +13,7 @@ export type AdminPermission =
   | "promotions"
   | "posts"
   | "bookings"
+  | "sales"
   | "media"
   | "settings"
   | "users";
@@ -33,9 +34,9 @@ export const roleLabels: Record<AdminRole, string> = {
 };
 
 export const rolePermissions: Record<AdminRole, AdminPermission[]> = {
-  admin: ["dashboard", "branches", "products", "promotions", "posts", "bookings", "media", "settings", "users"],
-  manager: ["dashboard", "branches", "products", "promotions", "posts", "bookings", "media"],
-  operator: ["bookings"],
+  admin: ["dashboard", "branches", "products", "promotions", "posts", "bookings", "sales", "media", "settings", "users"],
+  manager: ["dashboard", "branches", "products", "promotions", "posts", "bookings", "sales", "media"],
+  operator: ["bookings", "sales"],
   pending: [],
 };
 

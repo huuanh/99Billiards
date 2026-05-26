@@ -10,7 +10,8 @@ import {
 } from "@99billiards/db";
 import type { Product, ProductBrand, ProductCategory, ProductPageSettings, ProductSubcategory } from "@99billiards/db/seed";
 import { siteConfig } from "@99billiards/config";
-import { formatCurrency } from "@99billiards/ui";
+import { FontAwesomeIcon, formatCurrency } from "@99billiards/ui";
+import { CartLink } from "@/components/cart-link";
 
 const priceRanges = [
   { label: "Duoi 2 trieu", min: 0, max: 2_000_000 },
@@ -89,8 +90,9 @@ export default async function ProductsPage({
             <Link href="/#branches" className="rounded-full hover:text-[#00684a]">Co so</Link>
             <Link href="/#promotions" className="rounded-full hover:text-[#00684a]">Uu dai</Link>
             <Link href="/#news" className="rounded-full hover:text-[#00684a]">Tin tuc</Link>
+            <CartLink />
           </nav>
-          <a href={`tel:${siteConfig.hotline.replaceAll(" ", "")}`} className="focus-ring rounded-full bg-[#111713] px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-white">
+          <a href={`tel:${siteConfig.hotline.replaceAll(" ", "")}`} className="focus-ring rounded-full bg-[#00684a] px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-white">
             {siteConfig.hotline}
           </a>
         </div>
@@ -197,8 +199,11 @@ export default async function ProductsPage({
                 placeholder="Tim co, ngon, phu kien..."
                 className="min-h-11 min-w-0 border border-black/15 bg-white px-4 text-sm font-bold outline-none focus:border-[#00684a]"
               />
-              <button className="min-h-11 bg-[#111713] px-5 text-sm font-black uppercase tracking-[0.12em] text-white">
-                Tim
+              <button className="min-h-11 bg-[#00684a] px-5 text-sm font-black uppercase tracking-[0.12em] text-white">
+                <span className="inline-flex items-center gap-2">
+                  <FontAwesomeIcon icon="magnifying-glass" className="h-4 w-4" />
+                  Tim
+                </span>
               </button>
             </form>
           </div>

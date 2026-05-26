@@ -12,3 +12,26 @@ export const bookingSchema = z.object({
 });
 
 export type BookingInput = z.infer<typeof bookingSchema>;
+
+export const salesOrderSchema = z.object({
+  customerName: z.string().min(2, "Vui long nhap ho ten"),
+  phone: z.string().min(8, "So dien thoai chua hop le"),
+  email: z.string().email("Email chua hop le").optional().or(z.literal("")),
+  address: z.string().min(4, "Vui long nhap dia chi"),
+  province: z.string().optional(),
+  district: z.string().optional(),
+  ward: z.string().optional(),
+  note: z.string().optional(),
+  discountCode: z.string().optional(),
+  paymentMethod: z.literal("cod").default("cod"),
+  items: z
+    .array(
+      z.object({
+        productId: z.string().min(1),
+        quantity: z.coerce.number().int().min(1).max(99),
+      }),
+    )
+    .min(1, "Gio hang dang trong"),
+});
+
+export type SalesOrderInput = z.infer<typeof salesOrderSchema>;

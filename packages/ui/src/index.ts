@@ -2,6 +2,8 @@ export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+export { FontAwesomeIcon, type FontAwesomeIconName } from "./fontawesome-icon";
+
 export function formatCurrency(value: number) {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",

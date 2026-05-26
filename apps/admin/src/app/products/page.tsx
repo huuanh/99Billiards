@@ -1,6 +1,6 @@
 import { getAdminProducts, getProductBrands, getProductCategories, getProductSubcategories } from "@99billiards/db";
 import type { Product, ProductBrand, ProductCategory, ProductSubcategory } from "@99billiards/db/seed";
-import { formatCurrency } from "@99billiards/ui";
+import { FontAwesomeIcon, formatCurrency } from "@99billiards/ui";
 import { AdminActionForm } from "@/components/admin-action-form";
 import { FormModal } from "@/components/admin-modal";
 import { AdminShell, Input, Panel, SaveButton, Select, StatusPill, Textarea } from "@/components/admin-shell";
@@ -79,6 +79,9 @@ function ProductForm({
           <Input name="tags" label="Tags" placeholder="carbon, cue" defaultValue={(product?.tags || []).join(", ")} />
           <div className="md:col-span-2">
             <Textarea name="specs" label="Thong so san pham" defaultValue={(product?.specs || []).join("\n")} />
+          </div>
+          <div className="md:col-span-2">
+            <Textarea name="warrantyPolicy" label="Chinh sach bao hanh" defaultValue={product?.warrantyPolicy} />
           </div>
         </div>
       </section>
@@ -181,7 +184,10 @@ export default async function ProductsPage() {
                         <form action={deleteProduct}>
                           <input type="hidden" name="_id" value={product._id} />
                           <button className="min-h-9 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-bold text-red-700">
-                            Xoa
+                            <span className="inline-flex items-center gap-2">
+                              <FontAwesomeIcon icon="trash" className="h-3.5 w-3.5" />
+                              Xoa
+                            </span>
                           </button>
                         </form>
                       </div>

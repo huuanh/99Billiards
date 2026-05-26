@@ -37,6 +37,7 @@ export interface Product {
   detailContentFormat?: "plain" | "tiptap";
   detailContentJson?: unknown;
   detailContentText?: string;
+  warrantyPolicy?: string;
   featured?: boolean;
   status?: "published" | "draft";
   stockStatus?: "in-stock" | "out-of-stock" | "preorder";
@@ -137,6 +138,37 @@ export interface ProductPageSettings {
   promoText?: string;
   seoTitle?: string;
   seoDescription?: string;
+}
+
+export interface SalesOrderItem {
+  productId: string;
+  name: string;
+  image?: string;
+  price: number;
+  quantity: number;
+  total: number;
+}
+
+export interface SalesOrder {
+  _id?: string;
+  orderCode?: string;
+  customerName: string;
+  phone: string;
+  email?: string;
+  address: string;
+  province?: string;
+  district?: string;
+  ward?: string;
+  note?: string;
+  paymentMethod?: "cod";
+  items: SalesOrderItem[];
+  subtotal: number;
+  discountCode?: string;
+  discountTotal?: number;
+  total: number;
+  status?: "new" | "confirmed" | "shipping" | "completed" | "cancelled";
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export const branches: Branch[] = [];

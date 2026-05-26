@@ -87,6 +87,7 @@ const productSchema = new Schema(
     detailContentFormat: { type: String, enum: ["plain", "tiptap"], default: "plain" },
     detailContentJson: Schema.Types.Mixed,
     detailContentText: String,
+    warrantyPolicy: String,
     featured: Boolean,
     status: { type: String, default: "published" },
     stockStatus: { type: String, default: "in-stock" },
@@ -217,6 +218,40 @@ const bookingSchema = new Schema(
 bookingSchema.index({ status: 1, createdAt: -1 });
 bookingSchema.index({ branchId: 1, bookingDate: 1, bookingTime: 1 });
 
+const salesOrderSchema = new Schema(
+  {
+    orderCode: String,
+    customerName: String,
+    phone: String,
+    email: String,
+    address: String,
+    province: String,
+    district: String,
+    ward: String,
+    note: String,
+    paymentMethod: { type: String, default: "cod" },
+    items: [
+      {
+        productId: String,
+        name: String,
+        image: String,
+        price: Number,
+        quantity: Number,
+        total: Number,
+      },
+    ],
+    subtotal: Number,
+    discountCode: String,
+    discountTotal: { type: Number, default: 0 },
+    total: Number,
+    status: { type: String, default: "new" },
+  },
+  { timestamps: true },
+);
+salesOrderSchema.index({ status: 1, createdAt: -1 });
+salesOrderSchema.index({ orderCode: 1 }, { unique: true, sparse: true });
+salesOrderSchema.index({ phone: 1, createdAt: -1 });
+
 const siteSettingSchema = new Schema(
   {
     siteName: String,
@@ -298,6 +333,8 @@ export const PostModel = mongoose.models.Post || mongoose.model("Post", postSche
 export const PostCategoryModel =
   mongoose.models.PostCategory || mongoose.model("PostCategory", postCategorySchema);
 export const BookingModel = mongoose.models.Booking || mongoose.model("Booking", bookingSchema);
+export const SalesOrderModel =
+  mongoose.models.SalesOrder || mongoose.model("SalesOrder", salesOrderSchema);
 export const SiteSettingModel =
   mongoose.models.SiteSetting || mongoose.model("SiteSetting", siteSettingSchema);
 export const ProductPageSettingModel =
@@ -455,6 +492,11 @@ export async function getAdminPostById(id: string) {
 export async function getBookings() {
   if (!(await connectDb())) return [];
   return plain(await BookingModel.find().sort({ createdAt: -1 }).lean());
+}
+
+export async function getSalesOrders() {
+  if (!(await connectDb())) return [];
+  return plain(await SalesOrderModel.find().sort({ createdAt: -1 }).lean());
 }
 
 export async function getSiteSettings() {

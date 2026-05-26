@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { FontAwesomeIcon } from "@99billiards/ui";
 import { logoutAdmin } from "@/app/login/actions";
 import { type AdminPermission, hasPermission, requireAdmin, roleLabels } from "@/lib/auth";
 
@@ -15,6 +16,7 @@ const navItems = [
   { label: "Nhan hang", href: "/product-brands", section: "CMS san pham", permission: "products" },
   { label: "Hien thi trang SP", href: "/product-display", section: "CMS san pham", permission: "products" },
   { label: "Dat ban", href: "/bookings", section: "Van hanh", permission: "bookings" },
+  { label: "Ban hang", href: "/sales-orders", section: "Van hanh", permission: "sales" },
   { label: "Media", href: "/media", section: "Tai san", permission: "media" },
   { label: "Users", href: "/users", section: "He thong", permission: "users" },
   { label: "Settings", href: "/settings", section: "He thong", permission: "settings" },
@@ -94,7 +96,10 @@ export async function AdminShell({
               </div>
               <form action={logoutAdmin}>
                 <button className="focus-ring min-h-9 rounded-md bg-[#111713] px-3 py-2 text-sm font-bold text-white">
-                  Dang xuat
+                  <span className="inline-flex items-center gap-2">
+                    <FontAwesomeIcon icon="arrow-left" className="h-3.5 w-3.5" />
+                    Dang xuat
+                  </span>
                 </button>
               </form>
             </div>
@@ -261,7 +266,10 @@ export function Select({
 export function SaveButton({ label = "Luu" }: { label?: string }) {
   return (
     <button className="focus-ring min-h-10 rounded-md bg-[#d6ff3f] px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-black transition hover:bg-[#c6f02f]">
-      {label}
+      <span className="inline-flex items-center gap-2">
+        <FontAwesomeIcon icon="floppy-disk" className="h-4 w-4" />
+        {label}
+      </span>
     </button>
   );
 }
