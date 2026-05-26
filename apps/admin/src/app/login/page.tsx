@@ -37,7 +37,7 @@ export default function LoginPage({
             />
           </label>
           <label className="grid gap-2 text-sm font-bold">
-            Mat khau
+            Mật khẩu
             <input
               name="password"
               type="password"
@@ -47,13 +47,13 @@ export default function LoginPage({
           </label>
           <LoginError searchParams={searchParams} />
           <button className="focus-ring min-h-12 rounded-2xl bg-[#d6ff3f] px-5 py-3 text-sm font-black uppercase tracking-[0.18em] text-black">
-            Vao admin
+            Vào admin
           </button>
         </form>
 
         <div className="my-5 flex items-center gap-3 text-xs font-black uppercase tracking-[0.16em] text-black/35">
           <span className="h-px flex-1 bg-black/10" />
-          hoac
+          hoặc
           <span className="h-px flex-1 bg-black/10" />
         </div>
 
@@ -87,7 +87,7 @@ async function LoginError({
   if (params.error === "disabled") {
     return (
       <p role="alert" className="rounded-2xl bg-red-50 p-3 text-sm font-bold text-red-700">
-        Tai khoan da bi khoa.
+        Tài khoản đã bị khóa.
       </p>
     );
   }

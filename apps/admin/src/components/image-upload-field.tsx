@@ -144,7 +144,7 @@ export function ImageUploadField({
             <p className="mt-1 text-xs text-[#657064]">
               {multiple
                 ? "Chọn nhiều ảnh, upload lên R2 khi bấm Lưu."
-                : "Chọn ảnh moi, upload len R2 khi bam Lưu."}
+                : "Chọn ảnh mới, upload lên R2 khi bấm Lưu."}
             </p>
           </div>
           <label className="focus-ring inline-flex min-h-9 cursor-pointer items-center justify-center rounded-md bg-[#111713] px-3 py-2 text-sm font-bold text-white">

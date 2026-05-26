@@ -520,7 +520,7 @@ export async function createProduct(
       sortOrder: Number(value(formData, "sortOrder") || 0),
     });
     revalidateAdminAndPublic("/products");
-    return success("Đã tạo sản phẩm moi.");
+    return success("Đã tạo sản phẩm mới.");
   } catch (error) {
     await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);

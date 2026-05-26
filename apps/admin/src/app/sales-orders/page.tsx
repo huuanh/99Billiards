@@ -81,7 +81,7 @@ export default async function SalesOrdersPage({
       <Panel
         title="Đơn hàng website"
         subtitle={`${filteredOrders.length} kết quả trên ${orders.length} đơn hàng.`}
-        aside={<StatusPill label={`${counts.new || 0} moi`} tone={counts.new ? "warning" : "good"} />}
+        aside={<StatusPill label={`${counts.new || 0} mới`} tone={counts.new ? "warning" : "good"} />}
       >
         <Toolbar>
           <div className="flex flex-wrap gap-2">

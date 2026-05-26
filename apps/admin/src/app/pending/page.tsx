@@ -12,7 +12,7 @@ export default async function PendingPage() {
         </p>
         <h1 className="mt-3 text-3xl font-black">Đang chờ admin phân quyền</h1>
         <p className="mt-3 text-sm leading-6 text-[#596256]">
-          Tai khoan {session.email} đã đăng nhập thành công, nhưng chưa có quyền truy cập admin.
+          Tài khoản {session.email} đã đăng nhập thành công, nhưng chưa có quyền truy cập admin.
           Vui lòng đợi admin cấp role trong mục Users.
         </p>
         <form action={logoutAdmin} className="mt-6">

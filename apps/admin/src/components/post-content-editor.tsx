@@ -626,7 +626,7 @@ export function PostContentEditor({
                 onClick={closeLinkDialog}
                 className="min-h-9 rounded-md border border-[#cfd5c8] px-3 py-2 text-sm font-black"
               >
-                Dong
+                Đóng
               </button>
             </div>
 
@@ -696,7 +696,7 @@ export function PostContentEditor({
                 onClick={closeImageDialog}
                 className="min-h-9 rounded-md border border-[#cfd5c8] px-3 py-2 text-sm font-black"
               >
-                Dong
+                Đóng
               </button>
             </div>
 

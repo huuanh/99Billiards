@@ -39,7 +39,7 @@ export function MediaUploader() {
 
       setPublicUrl(payload.publicUrl);
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "Upload loi.");
+      setError(uploadError instanceof Error ? uploadError.message : "Upload lỗi.");
     } finally {
       setIsUploading(false);
     }

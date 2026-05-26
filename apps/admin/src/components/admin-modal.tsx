@@ -18,7 +18,7 @@ export function FormModal({
 }) {
   const [open, setOpen] = useState(false);
   const [notice, setNotice] = useState("");
-  const triggerIcon = trigger.toLowerCase().includes("sua") ? "pen-to-square" : "cart-shopping";
+  const triggerIcon = trigger.toLowerCase().includes("sửa") || trigger.toLowerCase().includes("sua") ? "pen-to-square" : "cart-shopping";
 
   function close(message?: string) {
     setOpen(false);
@@ -80,7 +80,7 @@ export function FormModal({
               >
                 <span className="inline-flex items-center gap-2">
                   <FontAwesomeIcon icon="xmark" className="h-3.5 w-3.5" />
-                  Dong
+                  Đóng
                 </span>
               </button>
             </header>

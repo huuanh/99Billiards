@@ -32,7 +32,7 @@ export default async function UsersPage() {
     <AdminShell title="Users" subtitle="Quan tri tai khoan Google va phan quyen admin.">
       <Panel
         title="Danh sách user"
-        subtitle="User moi dang nhap Google se o trang thai cho phan quyen."
+        subtitle="User mới đăng nhập Google sẽ ở trạng thái chờ phân quyền."
       >
         <div className="overflow-auto">
           <table className="w-full min-w-[900px] text-left text-sm">
@@ -70,7 +70,7 @@ export default async function UsersPage() {
                     </td>
                     <td className="px-3 py-3">
                       <StatusPill
-                        label={user.status === "disabled" ? "Khoa" : "Active"}
+                        label={user.status === "disabled" ? "Khóa" : "Active"}
                         tone={user.status === "disabled" ? "danger" : "good"}
                       />
                     </td>
@@ -102,7 +102,7 @@ export default async function UsersPage() {
                             value={user.status === "disabled" ? "active" : "disabled"}
                           />
                           <button className="min-h-9 rounded-md border border-[#cfd5c8] bg-white px-3 py-1 text-sm font-bold text-[#111713]">
-                            {user.status === "disabled" ? "Mo khoa" : "Khoa"}
+                            {user.status === "disabled" ? "Mở khóa" : "Khóa"}
                           </button>
                         </form>
                       </div>
