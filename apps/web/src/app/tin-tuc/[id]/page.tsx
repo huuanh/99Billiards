@@ -7,6 +7,7 @@ import type { Branch, Post, Promotion } from "@99billiards/db/seed";
 import { ArticleContent } from "@/components/article-content";
 import { BookingModal } from "@/components/booking-modal";
 import { MobileStickyActions } from "@/components/mobile-sticky-actions";
+import { PublicFooter } from "@/components/public-footer";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -52,6 +53,11 @@ export default async function PostDetailPage({ params }: PageProps) {
         ) : null}
         <ArticleContent post={post} />
       </article>
+      <PublicFooter
+        kicker="Tin tuc 99"
+        title="Theo doi lich dau va uu dai moi."
+        body="Cap nhat tin tuc, keo dau, su kien va cac goi tu van moi nhat tu he thong 99 Billiards."
+      />
       <div id="booking" />
       <BookingModal branches={branches} promotions={promotions} />
       <MobileStickyActions branch={branches[0]} />

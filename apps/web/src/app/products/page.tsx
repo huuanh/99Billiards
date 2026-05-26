@@ -12,6 +12,7 @@ import type { Product, ProductBrand, ProductCategory, ProductPageSettings, Produ
 import { siteConfig } from "@99billiards/config";
 import { FontAwesomeIcon, formatCurrency } from "@99billiards/ui";
 import { CartLink } from "@/components/cart-link";
+import { PublicFooter } from "@/components/public-footer";
 
 const priceRanges = [
   { label: "Duoi 2 trieu", min: 0, max: 2_000_000 },
@@ -72,7 +73,6 @@ export default async function ProductsPage({
     return categoryMatch && subcategoryMatch && brandMatch && priceMatch && queryMatch;
   });
 
-  const featuredProducts = productsRaw.filter((product) => product.featured).slice(0, 6);
   const heroImage =
     settings.heroImage ||
     "https://images.unsplash.com/photo-1541305678321-60de370004b7?auto=format&fit=crop&w=2200&q=80";
@@ -208,18 +208,7 @@ export default async function ProductsPage({
             </form>
           </div>
 
-          {featuredProducts.length ? (
-            <section className="py-8">
-              <h3 className="text-xl font-black">Hang noi bat</h3>
-              <div className="mt-4 grid gap-4 md:grid-cols-3">
-                {featuredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} categoryNames={categoryNames} subcategoryNames={subcategoryNames} brandNames={brandNames} featured />
-                ))}
-              </div>
-            </section>
-          ) : null}
-
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} categoryNames={categoryNames} subcategoryNames={subcategoryNames} brandNames={brandNames} />
             ))}
@@ -227,19 +216,11 @@ export default async function ProductsPage({
         </div>
       </section>
 
-      <footer id="contact" className="bg-[#15120d] px-4 py-14 text-white md:px-6">
-        <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[1fr_0.6fr]">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.24em] text-[#d6ff3f]">Tu van mua hang</p>
-            <h2 className="mt-3 text-4xl font-black">Can chon dung san pham?</h2>
-          </div>
-          <div className="space-y-3 text-white/70">
-            <p>Hotline: {siteConfig.hotline}</p>
-            <p>Dat lich hoc / tu van: {siteConfig.bookingPhone}</p>
-            <p>99 Billiards Club</p>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter
+        kicker="Tu van mua hang"
+        title="Can chon dung san pham?"
+        body="Gui nhu cau hoac goi hotline, doi ngu 99 Billiards se tu van san pham phu hop voi ngan sach va trinh do choi."
+      />
     </main>
   );
 }

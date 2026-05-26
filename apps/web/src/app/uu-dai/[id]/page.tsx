@@ -6,6 +6,7 @@ import { getBranches, getPromotionById, getPromotions } from "@99billiards/db";
 import type { Branch, Promotion } from "@99billiards/db/seed";
 import { BookingModal } from "@/components/booking-modal";
 import { MobileStickyActions } from "@/components/mobile-sticky-actions";
+import { PublicFooter } from "@/components/public-footer";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -63,6 +64,11 @@ export default async function PromotionDetailPage({ params }: PageProps) {
           </div>
         </div>
       </article>
+      <PublicFooter
+        kicker="Uu dai 99"
+        title="San sang cho van choi tiep theo?"
+        body="Lien he 99 Billiards de giu ban, hoi dieu kien ap dung uu dai va nhan tu van goi phu hop."
+      />
       <div id="booking" />
       <BookingModal branches={branches} promotions={promotions} />
       <MobileStickyActions branch={branches[0]} />

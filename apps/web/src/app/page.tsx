@@ -30,6 +30,7 @@ export default async function Home() {
   const promotions = promotionsRaw as Promotion[];
   const posts = postsRaw as Post[];
   const districts = Array.from(new Set(branches.map((branch) => branch.district)));
+  const featuredProducts = products.filter((product) => product.featured).slice(0, 4);
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#050705] pb-20 text-[#f5f1e8] md:pb-0">
@@ -118,11 +119,24 @@ export default async function Home() {
 
       <section id="products" className="mx-auto max-w-7xl px-4 py-24 md:px-6">
         <SectionTitle kicker="Products" title="Sản phẩm & dịch vụ" />
-        <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => (
-            <article key={product.id} className="overflow-hidden rounded-[1.6rem] border border-white/10 bg-white/[0.04]">
+        <Link
+          href="/products"
+          className="focus-ring mt-6 inline-flex rounded-full border border-white/15 px-5 py-3 text-xs font-black uppercase tracking-[0.18em] text-white/75 hover:border-[#d6ff3f] hover:text-[#d6ff3f]"
+        >
+          Xem tat ca san pham
+        </Link>
+        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {featuredProducts.map((product) => (
+            <Link
+              key={product.id}
+              href={`/products/${product.id}`}
+              className="group overflow-hidden rounded-[1.6rem] border border-white/10 bg-white/[0.04] transition hover:-translate-y-1 hover:border-[#d6ff3f]/45 hover:bg-white/[0.07]"
+            >
               <div className="relative aspect-[4/3] overflow-hidden">
-                <Image src={product.image} alt={product.name} fill className="object-cover" />
+                <Image src={product.image} alt={product.name} fill className="object-cover transition duration-500 group-hover:scale-105" />
+                <span className="absolute left-3 top-3 bg-[#d6ff3f] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.12em] text-black">
+                  Noi bat
+                </span>
               </div>
               <div className="p-5">
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-[#d6ff3f]">
@@ -133,7 +147,7 @@ export default async function Home() {
                   {formatCurrency(product.price)}
                 </p>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       </section>
@@ -250,12 +264,14 @@ export default async function Home() {
 }
 
 function SectionTitle({ kicker, title, dark = false }: { kicker: string; title: string; dark?: boolean }) {
+  const displayTitle = kicker === "Products" ? "Hang noi bat" : title;
+
   return (
     <div>
       <p className={`text-xs font-black uppercase tracking-[0.35em] ${dark ? "text-emerald-700" : "text-[#d6ff3f]"}`}>
         {kicker}
       </p>
-      <h2 className="mt-3 max-w-3xl text-4xl font-black md:text-6xl">{title}</h2>
+      <h2 className="mt-3 max-w-3xl text-4xl font-black md:text-6xl">{displayTitle}</h2>
     </div>
   );
 }

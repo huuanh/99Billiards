@@ -15,6 +15,7 @@ import { FontAwesomeIcon, formatCurrency } from "@99billiards/ui";
 import { ProductGallerySlider } from "@/components/product-gallery-slider";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { CartLink } from "@/components/cart-link";
+import { PublicFooter } from "@/components/public-footer";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -169,6 +170,12 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </div>
         </section>
       ) : null}
+
+      <PublicFooter
+        kicker="Tu van san pham"
+        title="Can them thong tin truoc khi mua?"
+        body="Lien he 99 Billiards de duoc tu van cau hinh, bao hanh va cach chon san pham phu hop voi cach choi cua ban."
+      />
     </main>
   );
 }
