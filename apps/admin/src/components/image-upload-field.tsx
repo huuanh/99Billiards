@@ -90,7 +90,7 @@ export function ImageUploadField({
       const oversizedFile = selectedFiles.find((file) => file.size > maxSingleUploadBytes);
       if (oversizedFile) {
         setError(
-          `Anh "${oversizedFile.name}" nang ${formatMegabytes(oversizedFile.size)}. Moi anh toi da ${formatMegabytes(maxSingleUploadBytes)}.`,
+          `Ảnh "${oversizedFile.name}" nặng ${formatMegabytes(oversizedFile.size)}. Mỗi ảnh tối đa ${formatMegabytes(maxSingleUploadBytes)}.`,
         );
         syncInputFiles(current);
         return current;
@@ -103,7 +103,7 @@ export function ImageUploadField({
 
       if (totalSize > maxFieldUploadBytes) {
         setError(
-          `Tong dung luong anh dang chon la ${formatMegabytes(totalSize)}. Moi lan luu toi da ${formatMegabytes(maxFieldUploadBytes)}.`,
+          `Tổng dung lượng ảnh đang chọn là ${formatMegabytes(totalSize)}. Mỗi lần lưu tối đa ${formatMegabytes(maxFieldUploadBytes)}.`,
         );
         syncInputFiles(current);
         return current;
@@ -143,12 +143,12 @@ export function ImageUploadField({
             <p className="text-sm font-black text-[#2b332d]">{label}</p>
             <p className="mt-1 text-xs text-[#657064]">
               {multiple
-                ? "Chon nhieu anh, upload len R2 khi bam Luu."
-                : "Chon anh moi, upload len R2 khi bam Luu."}
+                ? "Chọn nhiều ảnh, upload lên R2 khi bấm Lưu."
+                : "Chọn ảnh moi, upload len R2 khi bam Lưu."}
             </p>
           </div>
           <label className="focus-ring inline-flex min-h-9 cursor-pointer items-center justify-center rounded-md bg-[#111713] px-3 py-2 text-sm font-bold text-white">
-            {multiple ? "Them anh" : "Chon anh"}
+            {multiple ? "Thêm ảnh" : "Chọn ảnh"}
             <input
               ref={inputRef}
               name={fileInputName}
@@ -180,7 +180,7 @@ export function ImageUploadField({
                     onClick={() => removeExistingUrl(url)}
                     className="min-h-8 rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs font-black text-red-700"
                   >
-                    Xoa anh khi luu
+                    Xóa ảnh khi lưu
                   </button>
                 </div>
               </div>
@@ -192,13 +192,13 @@ export function ImageUploadField({
                 <img src={image.previewUrl} alt="" className="aspect-video w-full bg-[#eef1e9] object-cover" />
                 <div className="grid gap-2 p-2">
                   <p className="truncate text-xs font-bold text-[#2b332d]">{image.file.name}</p>
-                  <p className="text-xs text-[#657064]">Se upload khi bam Luu.</p>
+                  <p className="text-xs text-[#657064]">Sẽ upload khi bấm Lưu.</p>
                   <button
                     type="button"
                     onClick={() => removePendingImage(image.id)}
                     className="min-h-8 rounded-md border border-red-200 bg-red-50 px-2 py-1 text-xs font-black text-red-700"
                   >
-                    Bo anh khoi form
+                    Bỏ ảnh khỏi form
                   </button>
                 </div>
               </div>
@@ -206,7 +206,7 @@ export function ImageUploadField({
           </div>
         ) : (
           <div className="rounded-md border border-dashed border-[#cfd5c8] bg-white px-3 py-6 text-center text-sm text-[#657064]">
-            Chua co anh.
+            Chưa có anh.
           </div>
         )}
       </div>

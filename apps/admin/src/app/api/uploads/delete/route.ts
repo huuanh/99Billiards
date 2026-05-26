@@ -27,6 +27,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, deleted });
   } catch (error) {
     console.error("Delete upload failed", error);
-    return NextResponse.json({ error: "Xoa anh R2 chua thanh cong." }, { status: 500 });
+    return NextResponse.json({ error: "Xóa ảnh R2 chưa thành công." }, { status: 500 });
   }
 }

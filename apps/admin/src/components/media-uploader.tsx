@@ -15,7 +15,7 @@ export function MediaUploader() {
   async function upload(formData: FormData) {
     const file = formData.get("file");
     if (!(file instanceof File) || file.size === 0) {
-      setError("Vui long chon mot file anh.");
+      setError("Vui lòng chọn một file ảnh.");
       return;
     }
 
@@ -34,7 +34,7 @@ export function MediaUploader() {
       const payload = (await response.json()) as UploadPayload;
 
       if (!response.ok) {
-        throw new Error(payload.error || "Upload len R2 chua thanh cong.");
+        throw new Error(payload.error || "Upload lên R2 chưa thành công.");
       }
 
       setPublicUrl(payload.publicUrl);
@@ -48,7 +48,7 @@ export function MediaUploader() {
   return (
     <form action={upload} className="grid gap-4">
       <label className="grid gap-2 text-sm font-bold">
-        Chon anh
+        Chọn ảnh
         <input
           name="file"
           type="file"
@@ -60,7 +60,7 @@ export function MediaUploader() {
         disabled={isUploading}
         className="focus-ring min-h-11 rounded-2xl bg-[#d6ff3f] px-5 py-3 text-sm font-black uppercase tracking-[0.18em] text-black disabled:opacity-60"
       >
-        {isUploading ? "Dang upload..." : "Upload qua server"}
+        {isUploading ? "Đang upload..." : "Upload qua server"}
       </button>
 
       {error ? (

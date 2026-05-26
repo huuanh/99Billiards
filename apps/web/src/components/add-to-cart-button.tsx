@@ -31,7 +31,7 @@ export function AddToCartButton({
           type="button"
           onClick={() => updateQuantity(quantity - 1)}
           className="h-14 w-12 text-lg font-black text-[#00684a] transition hover:bg-[#f1f7f4]"
-          aria-label="Giam so luong"
+          aria-label="Giảm số lượng"
         >
           -
         </button>
@@ -40,13 +40,13 @@ export function AddToCartButton({
           onChange={(event) => updateQuantity(Number(event.target.value || 1))}
           className="h-14 w-16 border-x border-black/10 text-center text-base font-black outline-none"
           inputMode="numeric"
-          aria-label="So luong"
+          aria-label="Số lượng"
         />
         <button
           type="button"
           onClick={() => updateQuantity(quantity + 1)}
           className="h-14 w-12 text-lg font-black text-[#00684a] transition hover:bg-[#f1f7f4]"
-          aria-label="Tang so luong"
+          aria-label="Tăng số lượng"
         >
           +
         </button>
@@ -63,7 +63,7 @@ export function AddToCartButton({
       >
         <span className="inline-flex items-center justify-center gap-2">
           <FontAwesomeIcon icon="cart-shopping" className="h-4 w-4" />
-          Them vao gio hang
+          Thêm vào giỏ hàng
         </span>
       </button>
 
@@ -75,13 +75,13 @@ export function AddToCartButton({
                 <span className="grid h-6 w-6 place-items-center rounded-full border border-white/80">
                   <FontAwesomeIcon icon="cart-shopping" className="h-3 w-3" />
                 </span>
-                Them vao gio hang
+                Thêm vào giỏ hàng
               </div>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
                 className="grid h-8 w-8 place-items-center text-white transition hover:bg-white/10"
-                aria-label="Dong thong bao"
+                aria-label="Đóng thông báo"
               >
                 <FontAwesomeIcon icon="xmark" className="h-4 w-4" />
               </button>
@@ -94,25 +94,25 @@ export function AddToCartButton({
               <div className="min-w-0">
                 <p className="line-clamp-2 text-base font-black leading-tight">{product.name}</p>
                 <p className="mt-3 text-xl font-black text-[#0c3b2d]">{formatCurrency(product.price)}</p>
-                <p className="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-black/45">So luong: {quantity}</p>
+                <p className="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-black/45">Số lượng: {quantity}</p>
               </div>
             </div>
 
             <div className="px-4 py-4">
-              <p className="text-sm font-bold text-black/55">Gio hang cua ban hien co {cartQuantity} san pham.</p>
+              <p className="text-sm font-bold text-black/55">Giỏ hàng của bạn hiện có {cartQuantity} sản phẩm.</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
                   className="min-h-11 border border-black/15 bg-white px-4 py-2 text-sm font-black uppercase tracking-[0.1em] text-black transition hover:border-[#00684a] hover:text-[#00684a]"
                 >
-                  Tiep tuc mua hang
+                  Tiếp tục mua hàng
                 </button>
                 <a
                   href="/checkout"
                   className="grid min-h-11 place-items-center bg-[#00684a] px-4 py-2 text-sm font-black uppercase tracking-[0.1em] text-white transition hover:bg-[#00553d]"
                 >
-                  Thanh toan ngay
+                  Thanh toán ngay
                 </a>
               </div>
             </div>

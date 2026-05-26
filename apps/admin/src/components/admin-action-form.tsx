@@ -23,12 +23,12 @@ function validateFormFiles(formData: FormData) {
   );
   const oversizedFile = files.find((file) => file.size > maxSingleUploadBytes);
   if (oversizedFile) {
-    return `Anh "${oversizedFile.name}" nang ${formatMegabytes(oversizedFile.size)}. Moi anh toi da ${formatMegabytes(maxSingleUploadBytes)}.`;
+    return `Ảnh "${oversizedFile.name}" nặng ${formatMegabytes(oversizedFile.size)}. Mỗi ảnh tối đa ${formatMegabytes(maxSingleUploadBytes)}.`;
   }
 
   const totalSize = files.reduce((total, file) => total + file.size, 0);
   if (totalSize > maxActionUploadBytes) {
-    return `Tong dung luong anh dang chon la ${formatMegabytes(totalSize)}. Moi lan luu toi da ${formatMegabytes(maxActionUploadBytes)}.`;
+    return `Tổng dung lượng ảnh đang chọn là ${formatMegabytes(totalSize)}. Mỗi lần lưu tối đa ${formatMegabytes(maxActionUploadBytes)}.`;
   }
 
   return "";

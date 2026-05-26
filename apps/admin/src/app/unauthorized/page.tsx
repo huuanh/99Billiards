@@ -3,10 +3,10 @@ import { AdminShell, Panel } from "@/components/admin-shell";
 
 export default function UnauthorizedPage() {
   return (
-    <AdminShell title="Khong co quyen" subtitle="Tai khoan hien tai khong co quyen mo chuc nang nay.">
-      <Panel title="Bi gioi han truy cap">
+    <AdminShell title="Không có quyền" subtitle="Tài khoản hiện tại không có quyền mở chức năng này.">
+      <Panel title="Bị giới hạn truy cập">
         <p className="text-sm leading-6 text-[#596256]">
-          Hay lien he admin neu can mo them quyen cho tai khoan nay.
+          Hãy liên hệ admin nếu cần mở thêm quyền cho tài khoản này.
         </p>
         <Link
           href="/"

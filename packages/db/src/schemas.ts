@@ -14,10 +14,10 @@ export const bookingSchema = z.object({
 export type BookingInput = z.infer<typeof bookingSchema>;
 
 export const salesOrderSchema = z.object({
-  customerName: z.string().min(2, "Vui long nhap ho ten"),
-  phone: z.string().min(8, "So dien thoai chua hop le"),
-  email: z.string().email("Email chua hop le").optional().or(z.literal("")),
-  address: z.string().min(4, "Vui long nhap dia chi"),
+  customerName: z.string().min(2, "Vui lòng nhập họ tên"),
+  phone: z.string().min(8, "Số điện thoại chưa hợp lệ"),
+  email: z.string().email("Email chưa hợp lệ").optional().or(z.literal("")),
+  address: z.string().min(4, "Vui lòng nhập địa chỉ"),
   province: z.string().optional(),
   district: z.string().optional(),
   ward: z.string().optional(),
@@ -31,7 +31,7 @@ export const salesOrderSchema = z.object({
         quantity: z.coerce.number().int().min(1).max(99),
       }),
     )
-    .min(1, "Gio hang dang trong"),
+    .min(1, "Giỏ hàng dang trong"),
 });
 
 export type SalesOrderInput = z.infer<typeof salesOrderSchema>;

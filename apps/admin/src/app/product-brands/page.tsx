@@ -19,22 +19,22 @@ function BrandForm({ brand }: { brand?: AdminProductBrand }) {
     <AdminActionForm action={isEditing ? updateProductBrand : createProductBrand} closeModalOnSuccess>
       {brand?._id ? <input type="hidden" name="_id" value={brand._id} /> : null}
       <section className="rounded-lg border border-[#dfe3d8] bg-white p-4">
-        <h3 className="text-base font-black">Nhan hang</h3>
+        <h3 className="text-base font-black">Nhãn hàng</h3>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <Input name="name" label="Ten nhan hang" placeholder="Cuetec" defaultValue={brand?.name} />
+          <Input name="name" label="Tên nhãn hàng" placeholder="Cuetec" defaultValue={brand?.name} />
           <Input name="slug" label="Slug" placeholder="cuetec" defaultValue={brand?.slug} />
-          <Input name="sortOrder" label="Thu tu" placeholder="1" defaultValue={brand?.sortOrder} />
-          <Select name="status" label="Trang thai" options={["active", "hidden"]} defaultValue={brand?.status || "active"} />
+          <Input name="sortOrder" label="Thứ tự" placeholder="1" defaultValue={brand?.sortOrder} />
+          <Select name="status" label="Trạng thái" options={["active", "hidden"]} defaultValue={brand?.status || "active"} />
           <div className="md:col-span-2">
-            <Textarea name="description" label="Mo ta" defaultValue={brand?.description} />
+            <Textarea name="description" label="Mô tả" defaultValue={brand?.description} />
           </div>
           <div className="md:col-span-2">
-            <ImageUploadField name="logo" label="Logo nhan hang" defaultValue={brand?.logo} />
+            <ImageUploadField name="logo" label="Logo nhãn hàng" defaultValue={brand?.logo} />
           </div>
         </div>
       </section>
       <div className="sticky bottom-0 flex justify-end border-t border-[#dfe3d8] bg-[#f6f7f3]/95 py-4 backdrop-blur">
-        <SaveButton label={isEditing ? "Cap nhat nhan hang" : "Tao nhan hang"} />
+        <SaveButton label={isEditing ? "Cập nhật nhãn hàng" : "Tạo nhãn hàng"} />
       </div>
     </AdminActionForm>
   );
@@ -45,12 +45,12 @@ export default async function ProductBrandsPage() {
   const brands = (await getProductBrands({ includeHidden: true })) as AdminProductBrand[];
 
   return (
-    <AdminShell title="Nhan hang" subtitle="Quan ly logo, ten va mo ta nhan hang trong catalog san pham.">
+    <AdminShell title="Nhãn hàng" subtitle="Quản lý logo, tên và mô tả nhãn hàng trong catalog sản phẩm.">
       <Panel
-        title="Danh sach nhan hang"
-        subtitle={`${brands.length} nhan hang.`}
+        title="Danh sách nhãn hàng"
+        subtitle={`${brands.length} nhãn hàng.`}
         aside={
-          <FormModal trigger="Them nhan hang" title="Them nhan hang" intent="primary">
+          <FormModal trigger="Thêm nhãn hàng" title="Thêm nhãn hàng" intent="primary">
             <BrandForm />
           </FormModal>
         }
@@ -62,8 +62,8 @@ export default async function ProductBrandsPage() {
                 <th className="px-3 py-2">Logo</th>
                 <th className="px-3 py-2">Ten</th>
                 <th className="px-3 py-2">Slug</th>
-                <th className="px-3 py-2">Thu tu</th>
-                <th className="px-3 py-2">Trang thai</th>
+                <th className="px-3 py-2">Thứ tự</th>
+                <th className="px-3 py-2">Trạng thái</th>
                 <th className="px-3 py-2">Thao tac</th>
               </tr>
             </thead>
@@ -75,7 +75,7 @@ export default async function ProductBrandsPage() {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={brand.logo} alt="" className="h-10 w-14 rounded-md object-contain" />
                     ) : (
-                      <span className="text-xs text-[#657064]">Chua co</span>
+                      <span className="text-xs text-[#657064]">Chưa có</span>
                     )}
                   </td>
                   <td className="px-3 py-3 font-bold">{brand.name}</td>
@@ -87,7 +87,7 @@ export default async function ProductBrandsPage() {
                   <td className="px-3 py-3">
                     {brand._id ? (
                       <div className="flex gap-2">
-                        <FormModal trigger="Sua" title={`Sua ${brand.name}`}>
+                        <FormModal trigger="Sửa" title={`Sửa ${brand.name}`}>
                           <BrandForm brand={brand} />
                         </FormModal>
                         <form action={deleteProductBrand}>

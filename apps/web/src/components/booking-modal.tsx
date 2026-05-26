@@ -16,13 +16,31 @@ export function BookingModal({ branches, promotions, defaultBranchId }: Props) {
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
+  function closeModal() {
+    setOpen(false);
+    if (window.location.hash === "#booking") {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  }
+
   useEffect(() => {
     function openModal() {
       setOpen(true);
     }
 
+    function openFromHash() {
+      if (window.location.hash === "#booking") {
+        setOpen(true);
+      }
+    }
+
+    openFromHash();
     window.addEventListener("open-booking-modal", openModal);
-    return () => window.removeEventListener("open-booking-modal", openModal);
+    window.addEventListener("hashchange", openFromHash);
+    return () => {
+      window.removeEventListener("open-booking-modal", openModal);
+      window.removeEventListener("hashchange", openFromHash);
+    };
   }, []);
 
   async function submit(formData: FormData) {
@@ -67,7 +85,7 @@ export function BookingModal({ branches, promotions, defaultBranchId }: Props) {
               </div>
               <button
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={closeModal}
                 className="focus-ring h-11 w-11 rounded-full border border-white/15 text-xl text-white/80 transition hover:bg-white hover:text-black"
                 aria-label="Đóng"
               >

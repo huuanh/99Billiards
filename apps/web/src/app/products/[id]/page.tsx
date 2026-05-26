@@ -46,7 +46,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const brand = brandRecord?.name || product.brand || "";
   const gallery = uniqueUrls([product.image, ...(product.gallery || [])]);
   const stockLabel =
-    product.stockStatus === "out-of-stock" ? "Het hang" : product.stockStatus === "preorder" ? "Dat truoc" : "Con hang";
+    product.stockStatus === "out-of-stock" ? "Hết hàng" : product.stockStatus === "preorder" ? "Đặt trước" : "Còn hàng";
   const relatedProducts = products
     .filter((item) => item.id !== product.id && (item.categoryId === product.categoryId || item.brandId === product.brandId))
     .slice(0, 4);
@@ -60,9 +60,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <span className="hidden text-sm font-black uppercase tracking-[0.2em] md:block">99 Billiards</span>
           </Link>
           <nav className="hidden items-center gap-5 text-xs font-black uppercase tracking-[0.16em] text-black/58 lg:flex">
-            <Link href="/products" className="rounded-full text-[#00684a]">San pham</Link>
-            <Link href="/#branches" className="rounded-full hover:text-[#00684a]">Co so</Link>
-            <Link href="/#promotions" className="rounded-full hover:text-[#00684a]">Uu dai</Link>
+            <Link href="/products" className="rounded-full text-[#00684a]">Sản phẩm</Link>
+            <Link href="/#branches" className="rounded-full hover:text-[#00684a]">Cơ sở</Link>
+            <Link href="/#promotions" className="rounded-full hover:text-[#00684a]">Ưu đãi</Link>
             <CartLink />
           </nav>
           <a href={`tel:${siteConfig.hotline.replaceAll(" ", "")}`} className="focus-ring rounded-full bg-[#00684a] px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-white">
@@ -73,9 +73,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
       <section className="mx-auto max-w-7xl px-4 py-6 md:px-6">
         <nav className="flex flex-wrap gap-2 text-sm font-bold text-black/55">
-          <Link href="/" className="hover:text-[#00684a]">Trang chu</Link>
+          <Link href="/" className="hover:text-[#00684a]">Trang chủ</Link>
           <span>/</span>
-          <Link href="/products" className="hover:text-[#00684a]">San pham</Link>
+          <Link href="/products" className="hover:text-[#00684a]">Sản phẩm</Link>
           {category ? (
             <>
               <span>/</span>
@@ -101,8 +101,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             ) : null}
           </div>
           <div className="mt-5 grid gap-2 border-y border-black/10 py-4 text-sm font-bold text-black/62 sm:grid-cols-2">
-            <p>Thuong hieu: <span className="text-black">{brand || "-"}</span></p>
-            <p>Tinh trang: <span className="text-black">{stockLabel}</span></p>
+            <p>Thương hiệu: <span className="text-black">{brand || "-"}</span></p>
+            <p>Tình trạng: <span className="text-black">{stockLabel}</span></p>
           </div>
 
           {product.specs?.length ? (
@@ -128,10 +128,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </div>
 
           <div className="mt-7 grid gap-3 border border-[#00684a]/20 bg-[#00684a] p-5 text-sm font-bold text-white md:grid-cols-2">
-            <p className="inline-flex items-center gap-2"><FontAwesomeIcon icon="truck-fast" className="h-4 w-4" />Van chuyen hoa toc trong Ha Noi</p>
-            <p className="inline-flex items-center gap-2"><FontAwesomeIcon icon="shield-halved" className="h-4 w-4" />Ho tro bao duong ve sinh mien phi</p>
-            <p className="inline-flex items-center gap-2"><FontAwesomeIcon icon="gift" className="h-4 w-4" />Qua tang hap dan cho don hang</p>
-            <p className="inline-flex items-center gap-2"><FontAwesomeIcon icon="shield-halved" className="h-4 w-4" />Bao mat thong tin khach hang</p>
+            <p className="inline-flex items-center gap-2"><FontAwesomeIcon icon="truck-fast" className="h-4 w-4" />Vận chuyển hỏa tốc trong Hà Nội</p>
+            <p className="inline-flex items-center gap-2"><FontAwesomeIcon icon="shield-halved" className="h-4 w-4" />Hỗ trợ bảo dưỡng vệ sinh miễn phí</p>
+            <p className="inline-flex items-center gap-2"><FontAwesomeIcon icon="gift" className="h-4 w-4" />Quà tặng hấp dẫn cho đơn hàng</p>
+            <p className="inline-flex items-center gap-2"><FontAwesomeIcon icon="shield-halved" className="h-4 w-4" />Bảo mật thông tin khách hàng</p>
           </div>
         </div>
       </section>
@@ -139,11 +139,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       <section className="border-y border-black/10 bg-white">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:px-6 lg:grid-cols-[1fr_0.42fr]">
           <article>
-            <h2 className="text-3xl font-black">Mo ta san pham</h2>
+            <h2 className="text-3xl font-black">Mô tả sản phẩm</h2>
             <ProductDetailContent product={product} />
           </article>
           <aside className="border border-black/10 bg-[#f7f4ec] p-5">
-            <h3 className="text-xl font-black">Chinh sach bao hanh</h3>
+            <h3 className="text-xl font-black">Chính sách bảo hành</h3>
             <WarrantyPolicy content={product.warrantyPolicy} />
           </aside>
         </div>
@@ -151,7 +151,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
       {relatedProducts.length ? (
         <section className="mx-auto max-w-7xl px-4 py-14 md:px-6">
-          <h2 className="text-3xl font-black">San pham lien quan</h2>
+          <h2 className="text-3xl font-black">Sản phẩm liên quan</h2>
           <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {relatedProducts.map((item) => (
               <Link key={item.id} href={`/products/${item.id}`} className="group overflow-hidden border border-black/10 bg-white shadow-sm">
@@ -172,9 +172,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       ) : null}
 
       <PublicFooter
-        kicker="Tu van san pham"
-        title="Can them thong tin truoc khi mua?"
-        body="Lien he 99 Billiards de duoc tu van cau hinh, bao hanh va cach chon san pham phu hop voi cach choi cua ban."
+        kicker="Tư vấn sản phẩm"
+        title="Cần thêm thông tin trước khi mua?"
+        body="Liên hệ 99 Billiards để được tư vấn cấu hình, bảo hành và cách chọn sản phẩm phù hợp với cách chơi của bạn."
       />
     </main>
   );
@@ -208,7 +208,7 @@ function ProductDetailContent({ product }: { product: Product }) {
 
   const content = product.detailContentText || product.detailContent || product.description || "";
   if (!content) {
-    return <p className="mt-5 text-base leading-8 text-black/68">San pham duoc 99 Billiards tu van va phan phoi cho nguoi choi billiards.</p>;
+    return <p className="mt-5 text-base leading-8 text-black/68">Sản phẩm được 99 Billiards tư vấn và phân phối cho người chơi billiards.</p>;
   }
 
   return (
@@ -229,7 +229,7 @@ function WarrantyPolicy({ content }: { content?: string }) {
   if (!items.length) {
     return (
       <p className="mt-4 text-sm font-bold leading-6 text-black/55">
-        Chua cap nhat chinh sach bao hanh cho san pham nay.
+        Chưa cập nhật chính sách bảo hành cho sản phẩm này.
       </p>
     );
   }

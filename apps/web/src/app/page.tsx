@@ -123,7 +123,7 @@ export default async function Home() {
           href="/products"
           className="focus-ring mt-6 inline-flex rounded-full border border-white/15 px-5 py-3 text-xs font-black uppercase tracking-[0.18em] text-white/75 hover:border-[#d6ff3f] hover:text-[#d6ff3f]"
         >
-          Xem tat ca san pham
+          Xem tất cả sản phẩm
         </Link>
         <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {featuredProducts.map((product) => (
@@ -135,7 +135,7 @@ export default async function Home() {
               <div className="relative aspect-[4/3] overflow-hidden">
                 <Image src={product.image} alt={product.name} fill className="object-cover transition duration-500 group-hover:scale-105" />
                 <span className="absolute left-3 top-3 bg-[#d6ff3f] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.12em] text-black">
-                  Noi bat
+                  Nổi bật
                 </span>
               </div>
               <div className="p-5">
@@ -244,7 +244,7 @@ export default async function Home() {
       <footer id="contact" className="felt-grid px-4 py-16 md:px-6">
         <div className="mx-auto grid max-w-7xl gap-10 rounded-[2rem] border border-white/10 bg-black/35 p-8 md:grid-cols-[1fr_0.7fr]">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-[#d6ff3f]">Contact</p>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-[#d6ff3f]">Liên hệ</p>
             <h2 className="mt-3 text-4xl font-black md:text-6xl">Lên lịch cho ván kế tiếp.</h2>
           </div>
           <div className="space-y-4 text-white/70">
@@ -264,7 +264,7 @@ export default async function Home() {
 }
 
 function SectionTitle({ kicker, title, dark = false }: { kicker: string; title: string; dark?: boolean }) {
-  const displayTitle = kicker === "Products" ? "Hang noi bat" : title;
+  const displayTitle = kicker === "Products" ? "Hàng nổi bật" : title;
 
   return (
     <div>

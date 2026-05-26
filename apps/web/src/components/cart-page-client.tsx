@@ -37,12 +37,12 @@ export function CartPageClient() {
             <Link href="/products" className="text-sm font-black uppercase tracking-[0.14em] text-[#00684a]">
               <span className="inline-flex items-center gap-2">
                 <FontAwesomeIcon icon="arrow-left" className="h-3.5 w-3.5" />
-                Quay lai san pham
+                Quay lại sản phẩm
               </span>
             </Link>
-            <h1 className="mt-3 text-5xl font-black leading-tight">Gio hang</h1>
+            <h1 className="mt-3 text-5xl font-black leading-tight">Giỏ hàng</h1>
           </div>
-          <p className="text-sm font-bold text-black/55">{items.length} san pham</p>
+          <p className="text-sm font-bold text-black/55">{items.length} sản phẩm</p>
         </div>
 
         {items.length ? (
@@ -63,7 +63,7 @@ export function CartPageClient() {
                     >
                       <span className="inline-flex items-center gap-1.5">
                         <FontAwesomeIcon icon="trash" className="h-3.5 w-3.5" />
-                        Xoa khoi gio
+                        Xóa khỏi giỏ
                       </span>
                     </button>
                   </div>
@@ -85,13 +85,13 @@ export function CartPageClient() {
             </div>
 
             <aside className="h-fit border border-black/10 bg-white p-5">
-              <h2 className="text-xl font-black">Tong don hang</h2>
+              <h2 className="text-xl font-black">Tổng đơn hàng</h2>
               <div className="mt-5 flex justify-between border-y border-black/10 py-4 text-sm font-bold text-black/62">
-                <span>Tam tinh</span>
+                <span>Tạm tính</span>
                 <span>{formatCurrency(total)}</span>
               </div>
               <div className="mt-4 flex justify-between text-lg font-black">
-                <span>Tong cong</span>
+                <span>Tổng cộng</span>
                 <span className="text-[#0c3b2d]">{formatCurrency(total)}</span>
               </div>
               <Link
@@ -100,18 +100,18 @@ export function CartPageClient() {
               >
                 <span className="inline-flex items-center justify-center gap-2">
                   <FontAwesomeIcon icon="cart-shopping" className="h-4 w-4" />
-                  Thanh toan
+                  Thanh toán
                 </span>
               </Link>
             </aside>
           </div>
         ) : (
           <div className="py-16">
-            <p className="text-lg font-bold text-black/60">Gio hang dang trong.</p>
+            <p className="text-lg font-bold text-black/60">Giỏ hàng đang trống.</p>
             <Link href="/products" className="mt-6 inline-block bg-[#00684a] px-6 py-4 text-sm font-black uppercase tracking-[0.14em] text-white">
               <span className="inline-flex items-center gap-2">
                 <FontAwesomeIcon icon="arrow-left" className="h-4 w-4" />
-                Xem san pham
+                Xem sản phẩm
               </span>
             </Link>
           </div>

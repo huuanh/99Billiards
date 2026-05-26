@@ -5,19 +5,19 @@ import { logoutAdmin } from "@/app/login/actions";
 import { type AdminPermission, hasPermission, requireAdmin, roleLabels } from "@/lib/auth";
 
 const navItems = [
-  { label: "Dashboard", href: "/", section: "Tong quan", permission: "dashboard" },
-  { label: "Co so", href: "/branches", section: "CMS", permission: "branches" },
-  { label: "Uu dai", href: "/promotions", section: "CMS", permission: "promotions" },
-  { label: "Tin tuc", href: "/posts", section: "CMS", permission: "posts" },
-  { label: "Chuyen muc tin", href: "/post-categories", section: "CMS", permission: "posts" },
-  { label: "San pham", href: "/products", section: "CMS san pham", permission: "products" },
-  { label: "Danh muc san pham", href: "/product-categories", section: "CMS san pham", permission: "products" },
-  { label: "Danh muc con", href: "/product-subcategories", section: "CMS san pham", permission: "products" },
-  { label: "Nhan hang", href: "/product-brands", section: "CMS san pham", permission: "products" },
-  { label: "Hien thi trang SP", href: "/product-display", section: "CMS san pham", permission: "products" },
-  { label: "Dat ban", href: "/bookings", section: "Van hanh", permission: "bookings" },
-  { label: "Ban hang", href: "/sales-orders", section: "Van hanh", permission: "sales" },
-  { label: "Media", href: "/media", section: "Tai san", permission: "media" },
+  { label: "Dashboard", href: "/", section: "Tổng quan", permission: "dashboard" },
+  { label: "Cơ sở", href: "/branches", section: "CMS", permission: "branches" },
+  { label: "Ưu đãi", href: "/promotions", section: "CMS", permission: "promotions" },
+  { label: "Tin tức", href: "/posts", section: "CMS", permission: "posts" },
+  { label: "Chuyên mục tin", href: "/post-categories", section: "CMS", permission: "posts" },
+  { label: "Sản phẩm", href: "/products", section: "CMS sản phẩm", permission: "products" },
+  { label: "Danh mục sản phẩm", href: "/product-categories", section: "CMS sản phẩm", permission: "products" },
+  { label: "Danh mục con", href: "/product-subcategories", section: "CMS sản phẩm", permission: "products" },
+  { label: "Nhãn hàng", href: "/product-brands", section: "CMS sản phẩm", permission: "products" },
+  { label: "Hiển thị trang SP", href: "/product-display", section: "CMS sản phẩm", permission: "products" },
+  { label: "Đặt bàn", href: "/bookings", section: "Vận hành", permission: "bookings" },
+  { label: "Bán hàng", href: "/sales-orders", section: "Vận hành", permission: "sales" },
+  { label: "Media", href: "/media", section: "Tài sản", permission: "media" },
   { label: "Users", href: "/users", section: "He thong", permission: "users" },
   { label: "Settings", href: "/settings", section: "He thong", permission: "settings" },
 ] satisfies Array<{ label: string; href: string; section: string; permission: AdminPermission }>;
@@ -98,7 +98,7 @@ export async function AdminShell({
                 <button className="focus-ring min-h-9 rounded-md bg-[#111713] px-3 py-2 text-sm font-bold text-white">
                   <span className="inline-flex items-center gap-2">
                     <FontAwesomeIcon icon="arrow-left" className="h-3.5 w-3.5" />
-                    Dang xuat
+                    Đăng xuất
                   </span>
                 </button>
               </form>
@@ -263,7 +263,7 @@ export function Select({
   );
 }
 
-export function SaveButton({ label = "Luu" }: { label?: string }) {
+export function SaveButton({ label = "Lưu" }: { label?: string }) {
   return (
     <button className="focus-ring min-h-10 rounded-md bg-[#d6ff3f] px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-black transition hover:bg-[#c6f02f]">
       <span className="inline-flex items-center gap-2">

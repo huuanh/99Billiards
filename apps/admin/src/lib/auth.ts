@@ -29,7 +29,7 @@ export interface AdminSession {
 export const roleLabels: Record<AdminRole, string> = {
   admin: "Admin",
   manager: "Manager",
-  operator: "Van hanh",
+  operator: "Vận hành",
   pending: "Cho phan quyen",
 };
 

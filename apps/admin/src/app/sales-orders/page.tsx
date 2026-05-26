@@ -11,12 +11,12 @@ interface SalesOrderRow extends SalesOrder {
 }
 
 const statuses = [
-  { value: "all", label: "Tat ca" },
+  { value: "all", label: "Tất cả" },
   { value: "new", label: "Moi" },
-  { value: "confirmed", label: "Da xac nhan" },
-  { value: "shipping", label: "Dang giao" },
+  { value: "confirmed", label: "Đã xác nhận" },
+  { value: "shipping", label: "Đang giao" },
   { value: "completed", label: "Hoan tat" },
-  { value: "cancelled", label: "Da huy" },
+  { value: "cancelled", label: "Đã hủy" },
 ];
 
 function getParam(value: string | string[] | undefined) {
@@ -24,10 +24,10 @@ function getParam(value: string | string[] | undefined) {
 }
 
 function statusLabel(status?: string) {
-  if (status === "confirmed") return "Da xac nhan";
-  if (status === "shipping") return "Dang giao";
+  if (status === "confirmed") return "Đã xác nhận";
+  if (status === "shipping") return "Đang giao";
   if (status === "completed") return "Hoan tat";
-  if (status === "cancelled") return "Da huy";
+  if (status === "cancelled") return "Đã hủy";
   return "Moi";
 }
 
@@ -77,10 +77,10 @@ export default async function SalesOrdersPage({
   }, {});
 
   return (
-    <AdminShell title="Ban hang" subtitle="Theo doi don hang tu website, xac nhan COD va cap nhat trang thai giao hang.">
+    <AdminShell title="Bán hàng" subtitle="Theo dõi đơn hàng từ website, xác nhận COD và cập nhật trạng thái giao hàng.">
       <Panel
-        title="Don hang website"
-        subtitle={`${filteredOrders.length} ket qua tren ${orders.length} don hang.`}
+        title="Đơn hàng website"
+        subtitle={`${filteredOrders.length} kết quả trên ${orders.length} đơn hàng.`}
         aside={<StatusPill label={`${counts.new || 0} moi`} tone={counts.new ? "warning" : "good"} />}
       >
         <Toolbar>
@@ -104,7 +104,7 @@ export default async function SalesOrdersPage({
             <input
               name="q"
               defaultValue={query}
-              placeholder="Tim ma don, ten, SDT..."
+              placeholder="Tìm mã đơn, tên, SĐT..."
               className="min-h-9 w-full rounded-md border border-[#cfd5c8] bg-white px-3 py-2 text-sm outline-none focus:border-[#007a53] sm:w-72"
             />
             <button className="focus-ring min-h-9 rounded-md bg-[#111713] px-3 py-2 text-sm font-bold text-white">
@@ -120,13 +120,13 @@ export default async function SalesOrdersPage({
           <table className="w-full min-w-[1180px] text-left text-sm">
             <thead className="border-b border-[#e7eadf] text-[11px] uppercase tracking-[0.14em] text-[#657064]">
               <tr>
-                <th className="px-3 py-2">Don hang</th>
+                <th className="px-3 py-2">Đơn hàng</th>
                 <th className="px-3 py-2">Khach</th>
-                <th className="px-3 py-2">Dia chi</th>
-                <th className="px-3 py-2">San pham</th>
-                <th className="px-3 py-2">Tong tien</th>
-                <th className="px-3 py-2">Thanh toan</th>
-                <th className="px-3 py-2">Trang thai</th>
+                <th className="px-3 py-2">Địa chỉ</th>
+                <th className="px-3 py-2">Sản phẩm</th>
+                <th className="px-3 py-2">Tổng tiền</th>
+                <th className="px-3 py-2">Thanh toán</th>
+                <th className="px-3 py-2">Trạng thái</th>
                 <th className="px-3 py-2">Thao tac</th>
               </tr>
             </thead>
@@ -175,15 +175,15 @@ export default async function SalesOrdersPage({
                             className="min-h-9 rounded-md border border-[#cfd5c8] bg-white px-2 py-1 text-sm"
                           >
                             <option value="new">Moi</option>
-                            <option value="confirmed">Da xac nhan</option>
-                            <option value="shipping">Dang giao</option>
+                            <option value="confirmed">Đã xác nhận</option>
+                            <option value="shipping">Đang giao</option>
                             <option value="completed">Hoan tat</option>
-                            <option value="cancelled">Da huy</option>
+                            <option value="cancelled">Đã hủy</option>
                           </select>
                           <button className="min-h-9 rounded-md bg-[#111713] px-3 py-1 text-sm font-bold text-white">
                             <span className="inline-flex items-center gap-2">
                               <FontAwesomeIcon icon="floppy-disk" className="h-3.5 w-3.5" />
-                              Luu
+                              Lưu
                             </span>
                           </button>
                         </form>
@@ -192,7 +192,7 @@ export default async function SalesOrdersPage({
                           <button className="min-h-9 rounded-md border border-red-200 bg-red-50 px-3 py-1 text-sm font-bold text-red-700">
                             <span className="inline-flex items-center gap-2">
                               <FontAwesomeIcon icon="trash" className="h-3.5 w-3.5" />
-                              Xoa don
+                              Xóa đơn
                             </span>
                           </button>
                         </form>
@@ -203,7 +203,7 @@ export default async function SalesOrdersPage({
               ) : (
                 <tr>
                   <td colSpan={8} className="px-3 py-10 text-center text-[#657064]">
-                    Khong co don hang phu hop bo loc hien tai.
+                    Không có đơn hàng phù hợp bộ lọc hiện tại.
                   </td>
                 </tr>
               )}

@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   const parsed = salesOrderSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues[0]?.message || "Thong tin don hang chua hop le" }, { status: 400 });
+    return NextResponse.json({ error: parsed.error.issues[0]?.message || "Thông tin đơn hàng chưa hợp lệ" }, { status: 400 });
   }
 
   const connection = await connectDb().catch((error) => {
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
   });
 
   if (items.some((item) => !item)) {
-    return NextResponse.json({ error: "Mot so san pham khong con ton tai hoac chua publish" }, { status: 400 });
+    return NextResponse.json({ error: "Một số sản phẩm không còn tồn tại hoặc chưa publish" }, { status: 400 });
   }
 
   const resolvedItems = items.filter((item): item is NonNullable<typeof item> => Boolean(item));

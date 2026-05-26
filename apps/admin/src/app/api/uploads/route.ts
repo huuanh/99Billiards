@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     const file = formData.get("file");
 
     if (!(file instanceof File) || file.size === 0) {
-      return NextResponse.json({ error: "Vui long chon file anh." }, { status: 400 });
+      return NextResponse.json({ error: "Vui lòng chọn file ảnh." }, { status: 400 });
     }
 
     if (!file.type.startsWith("image/")) {
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     }
 
     if (file.size > maxFileSize) {
-      return NextResponse.json({ error: "Anh toi da 10MB." }, { status: 400 });
+      return NextResponse.json({ error: "Ảnh tối đa 10MB." }, { status: 400 });
     }
 
     const filename = sanitizeFilename(file.name);
@@ -58,6 +58,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, publicUrl });
   } catch (error) {
     console.error("Upload failed", error);
-    return NextResponse.json({ error: "Upload len R2 chua thanh cong." }, { status: 500 });
+    return NextResponse.json({ error: "Upload lên R2 chưa thành công." }, { status: 500 });
   }
 }

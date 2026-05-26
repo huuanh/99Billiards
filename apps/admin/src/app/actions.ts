@@ -92,12 +92,12 @@ function validateImagePayload(formData: FormData, keys: string[]) {
   const files = keys.flatMap((key) => imageFiles(formData, key));
   const oversizedFile = files.find((file) => file.size > maxImageFileSize);
   if (oversizedFile) {
-    return `Anh "${oversizedFile.name}" vuot gioi han 10MB.`;
+    return `Ảnh "${oversizedFile.name}" vượt giới hạn 10MB.`;
   }
 
   const totalSize = files.reduce((total, file) => total + file.size, 0);
   if (totalSize > maxImagePayloadSize) {
-    return "Tong dung luong anh moi lan luu toi da 25MB.";
+    return "Tổng dung lượng ảnh mỗi lần lưu tối đa 25MB.";
   }
 
   return "";
@@ -199,7 +199,7 @@ function requiredFields(formData: FormData, fields: Record<string, string>) {
   const fieldErrors: Record<string, string> = {};
   for (const [key, label] of Object.entries(fields)) {
     if (!value(formData, key)) {
-      fieldErrors[key] = `${label} la bat buoc.`;
+      fieldErrors[key] = `${label} là bắt buộc.`;
     }
   }
   return fieldErrors;
@@ -308,13 +308,13 @@ async function resolvePostContent(formData: FormData, uploadedUrls: string[]) {
     const contentText = value(formData, "contentText") || content;
 
     if (!contentJson || typeof contentJson !== "object" || (contentJson as { type?: unknown }).type !== "doc") {
-      return { ok: false as const, message: "Noi dung rich editor chua hop le." };
+      return { ok: false as const, message: "Nội dung rich editor chưa hợp lệ." };
     }
 
     const uploadMap = await uploadInlinePostImages(formData, uploadedUrls);
     const resolvedContentJson = replaceInlineImageUrls(contentJson, uploadMap);
     if (hasUnresolvedInlineImage(resolvedContentJson)) {
-      return { ok: false as const, message: "Anh trong bai viet chua upload duoc. Vui long chon lai anh." };
+      return { ok: false as const, message: "Ảnh trong bài viết chưa upload được. Vui lòng chọn lại ảnh." };
     }
 
     return {
@@ -327,7 +327,7 @@ async function resolvePostContent(formData: FormData, uploadedUrls: string[]) {
       },
     };
   } catch {
-    return { ok: false as const, message: "Noi dung rich editor chua hop le." };
+    return { ok: false as const, message: "Nội dung rich editor chưa hợp lệ." };
   }
 }
 
@@ -337,12 +337,12 @@ function mutationError(error: unknown): AdminActionState {
     return { ok: false, message: "Chi ho tro upload file anh." };
   }
   if (error instanceof Error && error.message === "IMAGE_TOO_LARGE") {
-    return { ok: false, message: "Anh toi da 10MB." };
+    return { ok: false, message: "Ảnh tối đa 10MB." };
   }
   if (error instanceof Error && error.message.includes("E11000")) {
-    return { ok: false, message: "Ma hoac slug da ton tai. Vui long dung gia tri khac." };
+    return { ok: false, message: "Mã hoặc slug đã tồn tại. Vui lòng dùng giá trị khác." };
   }
-  return { ok: false, message: "Luu du lieu chua thanh cong. Vui long kiem tra lai thong tin." };
+  return { ok: false, message: "Lưu dữ liệu chưa thành công. Vui lòng kiểm tra lại thông tin." };
 }
 
 export async function createBranch(
@@ -353,12 +353,12 @@ export async function createBranch(
   await requireDbConnection();
 
   const fieldErrors = requiredFields(formData, {
-    code: "Ma co so",
-    name: "Ten co so",
-    district: "Khu vuc",
-    address: "Dia chi",
+    code: "Mã cơ sở",
+    name: "Tên cơ sở",
+    district: "Khu vực",
+    address: "Địa chỉ",
   });
-  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien cac truong bat buoc.", fieldErrors);
+  if (Object.keys(fieldErrors).length) return fieldError("Vui lòng điền các trường bắt buộc.", fieldErrors);
   const imagePayloadError = validateImagePayload(formData, ["image", "gallery", "contentInlineImages"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
 
@@ -387,7 +387,7 @@ export async function createBranch(
       seoDescription: value(formData, "seoDescription"),
     });
     revalidateAdminAndPublic("/branches");
-    return success("Da tao co so moi.");
+    return success("Đã tạo cơ sở mới.");
   } catch (error) {
     await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
@@ -402,15 +402,15 @@ export async function updateBranch(
   await requireDbConnection();
 
   const id = value(formData, "_id");
-  if (!id) return fieldError("Thieu ID ban ghi.", { _id: "Thieu ID ban ghi." });
+  if (!id) return fieldError("Thiếu ID bản ghi.", { _id: "Thiếu ID bản ghi." });
 
   const fieldErrors = requiredFields(formData, {
-    code: "Ma co so",
-    name: "Ten co so",
-    district: "Khu vuc",
-    address: "Dia chi",
+    code: "Mã cơ sở",
+    name: "Tên cơ sở",
+    district: "Khu vực",
+    address: "Địa chỉ",
   });
-  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien cac truong bat buoc.", fieldErrors);
+  if (Object.keys(fieldErrors).length) return fieldError("Vui lòng điền các trường bắt buộc.", fieldErrors);
   const imagePayloadError = validateImagePayload(formData, ["image", "gallery"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
 
@@ -445,7 +445,7 @@ export async function updateBranch(
       [image, ...gallery],
     );
     revalidateAdminAndPublic("/branches");
-    return success("Da cap nhat co so.");
+    return success("Đã cập nhật cơ sở.");
   } catch (error) {
     await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
@@ -473,11 +473,11 @@ export async function createProduct(
   await requireDbConnection();
 
   const fieldErrors = requiredFields(formData, {
-    name: "Ten san pham",
+    name: "Tên sản phẩm",
   });
-  const price = numberValue(formData, "price", "Gia");
+  const price = numberValue(formData, "price", "Giá");
   if (price.error) fieldErrors.price = price.error;
-  if (Object.keys(fieldErrors).length) return fieldError("Vui long kiem tra thong tin san pham.", fieldErrors);
+  if (Object.keys(fieldErrors).length) return fieldError("Vui lòng kiểm tra thông tin sản phẩm.", fieldErrors);
   const imagePayloadError = validateImagePayload(formData, ["image", "gallery"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
 
@@ -503,7 +503,7 @@ export async function createProduct(
       brand: value(formData, "brandId"),
       brandId: value(formData, "brandId"),
       price: price.value,
-      compareAtPrice: numberValue(formData, "compareAtPrice", "Gia niem yet").value || undefined,
+      compareAtPrice: numberValue(formData, "compareAtPrice", "Giá niêm yết").value || undefined,
       image,
       gallery,
       description: value(formData, "description") || detailContent.value.contentText.slice(0, 220),
@@ -520,7 +520,7 @@ export async function createProduct(
       sortOrder: Number(value(formData, "sortOrder") || 0),
     });
     revalidateAdminAndPublic("/products");
-    return success("Da tao san pham moi.");
+    return success("Đã tạo sản phẩm moi.");
   } catch (error) {
     await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
@@ -535,14 +535,14 @@ export async function updateProduct(
   await requireDbConnection();
 
   const id = value(formData, "_id");
-  if (!id) return fieldError("Thieu ID ban ghi.", { _id: "Thieu ID ban ghi." });
+  if (!id) return fieldError("Thiếu ID bản ghi.", { _id: "Thiếu ID bản ghi." });
 
   const fieldErrors = requiredFields(formData, {
-    name: "Ten san pham",
+    name: "Tên sản phẩm",
   });
-  const price = numberValue(formData, "price", "Gia");
+  const price = numberValue(formData, "price", "Giá");
   if (price.error) fieldErrors.price = price.error;
-  if (Object.keys(fieldErrors).length) return fieldError("Vui long kiem tra thong tin san pham.", fieldErrors);
+  if (Object.keys(fieldErrors).length) return fieldError("Vui lòng kiểm tra thông tin sản phẩm.", fieldErrors);
   const imagePayloadError = validateImagePayload(formData, ["image", "gallery", "contentInlineImages"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
 
@@ -569,7 +569,7 @@ export async function updateProduct(
         brand: value(formData, "brandId"),
         brandId: value(formData, "brandId"),
         price: price.value,
-        compareAtPrice: numberValue(formData, "compareAtPrice", "Gia niem yet").value || undefined,
+        compareAtPrice: numberValue(formData, "compareAtPrice", "Giá niêm yết").value || undefined,
         image,
         gallery,
         description: value(formData, "description") || detailContent.value.contentText.slice(0, 220),
@@ -597,7 +597,7 @@ export async function updateProduct(
       [image, ...gallery, ...collectTiptapImageUrls(detailContent.value.contentJson)],
     );
     revalidateAdminAndPublic("/products");
-    return success("Da cap nhat san pham.");
+    return success("Đã cập nhật sản phẩm.");
   } catch (error) {
     await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
@@ -625,14 +625,14 @@ export async function createProductCategory(
   await requirePermission("products");
   await requireDbConnection();
 
-  const fieldErrors = requiredFields(formData, { name: "Ten danh muc" });
-  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin danh muc.", fieldErrors);
+  const fieldErrors = requiredFields(formData, { name: "Tên danh mục" });
+  if (Object.keys(fieldErrors).length) return fieldError("Vui lòng điền thông tin danh mục.", fieldErrors);
   const imagePayloadError = validateImagePayload(formData, ["image"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
 
   const name = value(formData, "name");
   const slug = value(formData, "slug") || slugify(name);
-  if (!slug) return fieldError("Slug danh muc chua hop le.", { slug: "Slug danh muc chua hop le." });
+  if (!slug) return fieldError("Slug danh mục chưa hợp lệ.", { slug: "Slug danh mục chưa hợp lệ." });
 
   const uploadedUrls: string[] = [];
   try {
@@ -648,7 +648,7 @@ export async function createProductCategory(
     });
     revalidateAdminAndPublic("/product-categories");
     revalidateAdminAndPublic("/products");
-    return success("Da tao danh muc san pham.");
+    return success("Đã tạo danh mục sản phẩm.");
   } catch (error) {
     await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
@@ -663,15 +663,15 @@ export async function updateProductCategory(
   await requireDbConnection();
 
   const id = value(formData, "_id");
-  if (!id) return fieldError("Thieu ID ban ghi.", { _id: "Thieu ID ban ghi." });
-  const fieldErrors = requiredFields(formData, { name: "Ten danh muc" });
-  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin danh muc.", fieldErrors);
+  if (!id) return fieldError("Thiếu ID bản ghi.", { _id: "Thiếu ID bản ghi." });
+  const fieldErrors = requiredFields(formData, { name: "Tên danh mục" });
+  if (Object.keys(fieldErrors).length) return fieldError("Vui lòng điền thông tin danh mục.", fieldErrors);
   const imagePayloadError = validateImagePayload(formData, ["image"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
 
   const name = value(formData, "name");
   const slug = value(formData, "slug") || slugify(name);
-  if (!slug) return fieldError("Slug danh muc chua hop le.", { slug: "Slug danh muc chua hop le." });
+  if (!slug) return fieldError("Slug danh mục chưa hợp lệ.", { slug: "Slug danh mục chưa hợp lệ." });
 
   const existing = await ProductCategoryModel.findById(id).lean();
   const uploadedUrls: string[] = [];
@@ -689,7 +689,7 @@ export async function updateProductCategory(
     await cleanupRemovedMedia([String(existing?.image || "")], [image]);
     revalidateAdminAndPublic("/product-categories");
     revalidateAdminAndPublic("/products");
-    return success("Da cap nhat danh muc san pham.");
+    return success("Đã cập nhật danh mục sản phẩm.");
   } catch (error) {
     await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
@@ -723,12 +723,12 @@ export async function createProductSubcategory(
   await requirePermission("products");
   await requireDbConnection();
 
-  const fieldErrors = requiredFields(formData, { name: "Ten danh muc con" });
-  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin danh muc con.", fieldErrors);
+  const fieldErrors = requiredFields(formData, { name: "Tên danh mục con" });
+  if (Object.keys(fieldErrors).length) return fieldError("Vui lòng điền thông tin danh mục con.", fieldErrors);
 
   const name = value(formData, "name");
   const slug = value(formData, "slug") || slugify(name);
-  if (!slug) return fieldError("Slug danh muc con chua hop le.", { slug: "Slug danh muc con chua hop le." });
+  if (!slug) return fieldError("Slug danh mục con chưa hợp lệ.", { slug: "Slug danh mục con chưa hợp lệ." });
 
   try {
     await ProductSubcategoryModel.create({
@@ -743,7 +743,7 @@ export async function createProductSubcategory(
     });
     revalidateAdminAndPublic("/product-subcategories");
     revalidateAdminAndPublic("/products");
-    return success("Da tao danh muc con.");
+    return success("Đã tạo danh mục con.");
   } catch (error) {
     return mutationError(error);
   }
@@ -757,13 +757,13 @@ export async function updateProductSubcategory(
   await requireDbConnection();
 
   const id = value(formData, "_id");
-  if (!id) return fieldError("Thieu ID ban ghi.", { _id: "Thieu ID ban ghi." });
-  const fieldErrors = requiredFields(formData, { name: "Ten danh muc con" });
-  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin danh muc con.", fieldErrors);
+  if (!id) return fieldError("Thiếu ID bản ghi.", { _id: "Thiếu ID bản ghi." });
+  const fieldErrors = requiredFields(formData, { name: "Tên danh mục con" });
+  if (Object.keys(fieldErrors).length) return fieldError("Vui lòng điền thông tin danh mục con.", fieldErrors);
 
   const name = value(formData, "name");
   const slug = value(formData, "slug") || slugify(name);
-  if (!slug) return fieldError("Slug danh muc con chua hop le.", { slug: "Slug danh muc con chua hop le." });
+  if (!slug) return fieldError("Slug danh mục con chưa hợp lệ.", { slug: "Slug danh mục con chưa hợp lệ." });
 
   try {
     await ProductSubcategoryModel.findByIdAndUpdate(id, {
@@ -778,7 +778,7 @@ export async function updateProductSubcategory(
     });
     revalidateAdminAndPublic("/product-subcategories");
     revalidateAdminAndPublic("/products");
-    return success("Da cap nhat danh muc con.");
+    return success("Đã cập nhật danh mục con.");
   } catch (error) {
     return mutationError(error);
   }
@@ -813,14 +813,14 @@ export async function createProductBrand(
   await requirePermission("products");
   await requireDbConnection();
 
-  const fieldErrors = requiredFields(formData, { name: "Ten nhan hang" });
-  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin nhan hang.", fieldErrors);
+  const fieldErrors = requiredFields(formData, { name: "Tên nhãn hàng" });
+  if (Object.keys(fieldErrors).length) return fieldError("Vui lòng điền thông tin nhãn hàng.", fieldErrors);
   const imagePayloadError = validateImagePayload(formData, ["logo"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { logo: imagePayloadError });
 
   const name = value(formData, "name");
   const slug = value(formData, "slug") || slugify(name);
-  if (!slug) return fieldError("Slug nhan hang chua hop le.", { slug: "Slug nhan hang chua hop le." });
+  if (!slug) return fieldError("Slug nhãn hàng chưa hợp lệ.", { slug: "Slug nhãn hàng chưa hợp lệ." });
 
   const uploadedUrls: string[] = [];
   try {
@@ -836,7 +836,7 @@ export async function createProductBrand(
     });
     revalidateAdminAndPublic("/product-brands");
     revalidateAdminAndPublic("/products");
-    return success("Da tao nhan hang.");
+    return success("Đã tạo nhãn hàng.");
   } catch (error) {
     await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
@@ -851,15 +851,15 @@ export async function updateProductBrand(
   await requireDbConnection();
 
   const id = value(formData, "_id");
-  if (!id) return fieldError("Thieu ID ban ghi.", { _id: "Thieu ID ban ghi." });
-  const fieldErrors = requiredFields(formData, { name: "Ten nhan hang" });
-  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin nhan hang.", fieldErrors);
+  if (!id) return fieldError("Thiếu ID bản ghi.", { _id: "Thiếu ID bản ghi." });
+  const fieldErrors = requiredFields(formData, { name: "Tên nhãn hàng" });
+  if (Object.keys(fieldErrors).length) return fieldError("Vui lòng điền thông tin nhãn hàng.", fieldErrors);
   const imagePayloadError = validateImagePayload(formData, ["logo"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { logo: imagePayloadError });
 
   const name = value(formData, "name");
   const slug = value(formData, "slug") || slugify(name);
-  if (!slug) return fieldError("Slug nhan hang chua hop le.", { slug: "Slug nhan hang chua hop le." });
+  if (!slug) return fieldError("Slug nhãn hàng chưa hợp lệ.", { slug: "Slug nhãn hàng chưa hợp lệ." });
 
   const existing = await ProductBrandModel.findById(id).lean();
   const uploadedUrls: string[] = [];
@@ -877,7 +877,7 @@ export async function updateProductBrand(
     await cleanupRemovedMedia([String(existing?.logo || "")], [logo]);
     revalidateAdminAndPublic("/product-brands");
     revalidateAdminAndPublic("/products");
-    return success("Da cap nhat nhan hang.");
+    return success("Đã cập nhật nhãn hàng.");
   } catch (error) {
     await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
@@ -914,9 +914,9 @@ export async function updateProductPageSettings(
 
   const fieldErrors = requiredFields(formData, {
     heroTitle: "Tieu de hero",
-    heroSubtitle: "Mo ta hero",
+    heroSubtitle: "Mô tả hero",
   });
-  if (Object.keys(fieldErrors).length) return fieldError("Vui long kiem tra noi dung hien thi.", fieldErrors);
+  if (Object.keys(fieldErrors).length) return fieldError("Vui lòng kiểm tra nội dung hiển thị.", fieldErrors);
   const imagePayloadError = validateImagePayload(formData, ["heroImage"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { heroImage: imagePayloadError });
 
@@ -945,7 +945,7 @@ export async function updateProductPageSettings(
     await cleanupRemovedMedia([String(existing?.heroImage || "")], [heroImage]);
     revalidateAdminAndPublic("/product-display");
     revalidateAdminAndPublic("/products");
-    return success("Da luu hien thi trang san pham.");
+    return success("Đã lưu hiển thị trang sản phẩm.");
   } catch (error) {
     await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
@@ -961,9 +961,9 @@ export async function createPromotion(
 
   const fieldErrors = requiredFields(formData, {
     title: "Tieu de",
-    description: "Mo ta",
+    description: "Mô tả",
   });
-  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin uu dai.", fieldErrors);
+  if (Object.keys(fieldErrors).length) return fieldError("Vui lòng điền thông tin ưu đãi.", fieldErrors);
   const imagePayloadError = validateImagePayload(formData, ["image"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
 
@@ -984,7 +984,7 @@ export async function createPromotion(
       status: value(formData, "status") || "draft",
     });
     revalidateAdminAndPublic("/promotions");
-    return success("Da tao uu dai moi.");
+    return success("Đã tạo ưu đãi mới.");
   } catch (error) {
     await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
@@ -999,13 +999,13 @@ export async function updatePromotion(
   await requireDbConnection();
 
   const id = value(formData, "_id");
-  if (!id) return fieldError("Thieu ID ban ghi.", { _id: "Thieu ID ban ghi." });
+  if (!id) return fieldError("Thiếu ID bản ghi.", { _id: "Thiếu ID bản ghi." });
 
   const fieldErrors = requiredFields(formData, {
     title: "Tieu de",
-    description: "Mo ta",
+    description: "Mô tả",
   });
-  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin uu dai.", fieldErrors);
+  if (Object.keys(fieldErrors).length) return fieldError("Vui lòng điền thông tin ưu đãi.", fieldErrors);
   const imagePayloadError = validateImagePayload(formData, ["image"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
 
@@ -1029,7 +1029,7 @@ export async function updatePromotion(
 
     await cleanupRemovedMedia([String(existing?.image || "")], [image]);
     revalidateAdminAndPublic("/promotions");
-    return success("Da cap nhat uu dai.");
+    return success("Đã cập nhật ưu đãi.");
   } catch (error) {
     await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
@@ -1069,13 +1069,13 @@ export async function createPostCategory(
   await requireDbConnection();
 
   const fieldErrors = requiredFields(formData, {
-    name: "Ten chuyen muc",
+    name: "Tên chuyên mục",
   });
-  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin chuyen muc.", fieldErrors);
+  if (Object.keys(fieldErrors).length) return fieldError("Vui lòng điền thông tin chuyên mục.", fieldErrors);
 
   const name = value(formData, "name");
   const slug = value(formData, "slug") || slugify(name);
-  if (!slug) return fieldError("Slug chuyen muc chua hop le.", { slug: "Slug chuyen muc chua hop le." });
+  if (!slug) return fieldError("Slug chuyên mục chưa hợp lệ.", { slug: "Slug chuyên mục chưa hợp lệ." });
 
   try {
     await PostCategoryModel.create({
@@ -1088,7 +1088,7 @@ export async function createPostCategory(
     });
     revalidateAdminAndPublic("/post-categories");
     revalidateAdminAndPublic("/posts");
-    return success("Da tao chuyen muc moi.");
+    return success("Đã tạo chuyên mục mới.");
   } catch (error) {
     return mutationError(error);
   }
@@ -1102,16 +1102,16 @@ export async function updatePostCategory(
   await requireDbConnection();
 
   const id = value(formData, "_id");
-  if (!id) return fieldError("Thieu ID ban ghi.", { _id: "Thieu ID ban ghi." });
+  if (!id) return fieldError("Thiếu ID bản ghi.", { _id: "Thiếu ID bản ghi." });
 
   const fieldErrors = requiredFields(formData, {
-    name: "Ten chuyen muc",
+    name: "Tên chuyên mục",
   });
-  if (Object.keys(fieldErrors).length) return fieldError("Vui long dien thong tin chuyen muc.", fieldErrors);
+  if (Object.keys(fieldErrors).length) return fieldError("Vui lòng điền thông tin chuyên mục.", fieldErrors);
 
   const name = value(formData, "name");
   const slug = value(formData, "slug") || slugify(name);
-  if (!slug) return fieldError("Slug chuyen muc chua hop le.", { slug: "Slug chuyen muc chua hop le." });
+  if (!slug) return fieldError("Slug chuyên mục chưa hợp lệ.", { slug: "Slug chuyên mục chưa hợp lệ." });
 
   const existing = await PostCategoryModel.findById(id).lean();
 
@@ -1132,7 +1132,7 @@ export async function updatePostCategory(
 
     revalidateAdminAndPublic("/post-categories");
     revalidateAdminAndPublic("/posts");
-    return success("Da cap nhat chuyen muc.");
+    return success("Đã cập nhật chuyên mục.");
   } catch (error) {
     return mutationError(error);
   }
@@ -1166,13 +1166,13 @@ export async function createPost(
 
   const fieldErrors = requiredFields(formData, {
     title: "Tieu de",
-    category: "Chuyen muc",
+    category: "Chuyên mục",
   });
   const publishedAt = value(formData, "publishedAt") || new Date().toISOString().slice(0, 10);
   if (!isDateValue(publishedAt)) fieldErrors.publishedAt = "Ngay dang phai co dang YYYY-MM-DD.";
-  if (Object.keys(fieldErrors).length) return fieldError("Vui long kiem tra thong tin bai viet.", fieldErrors);
+  if (Object.keys(fieldErrors).length) return fieldError("Vui lòng kiểm tra thông tin bài viết.", fieldErrors);
   if (!(await ensurePostCategoryName(value(formData, "category")))) {
-    return fieldError("Chuyen muc khong hop le hoac dang an.", { category: "Vui long chon chuyen muc co san." });
+    return fieldError("Chuyên mục không hợp lệ hoặc đang ẩn.", { category: "Vui lòng chọn chuyên mục có sẵn." });
   }
   const imagePayloadError = validateImagePayload(formData, ["image", "contentInlineImages"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
@@ -1202,7 +1202,7 @@ export async function createPost(
       status: value(formData, "status") || "draft",
     });
     revalidateAdminAndPublic("/posts");
-    return success("Da tao bai viet moi.");
+    return success("Đã tạo bài viết mới.");
   } catch (error) {
     await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
@@ -1217,17 +1217,17 @@ export async function updatePost(
   await requireDbConnection();
 
   const id = value(formData, "_id");
-  if (!id) return fieldError("Thieu ID ban ghi.", { _id: "Thieu ID ban ghi." });
+  if (!id) return fieldError("Thiếu ID bản ghi.", { _id: "Thiếu ID bản ghi." });
 
   const fieldErrors = requiredFields(formData, {
     title: "Tieu de",
-    category: "Chuyen muc",
+    category: "Chuyên mục",
   });
   const publishedAt = value(formData, "publishedAt") || new Date().toISOString().slice(0, 10);
   if (!isDateValue(publishedAt)) fieldErrors.publishedAt = "Ngay dang phai co dang YYYY-MM-DD.";
-  if (Object.keys(fieldErrors).length) return fieldError("Vui long kiem tra thong tin bai viet.", fieldErrors);
+  if (Object.keys(fieldErrors).length) return fieldError("Vui lòng kiểm tra thông tin bài viết.", fieldErrors);
   if (!(await ensurePostCategoryName(value(formData, "category")))) {
-    return fieldError("Chuyen muc khong hop le hoac dang an.", { category: "Vui long chon chuyen muc co san." });
+    return fieldError("Chuyên mục không hợp lệ hoặc đang ẩn.", { category: "Vui lòng chọn chuyên mục có sẵn." });
   }
   const imagePayloadError = validateImagePayload(formData, ["image", "contentInlineImages"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { image: imagePayloadError });
@@ -1266,7 +1266,7 @@ export async function updatePost(
       [image, ...collectTiptapImageUrls(postContent.value.contentJson)],
     );
     revalidateAdminAndPublic("/posts");
-    return success("Da cap nhat bai viet.");
+    return success("Đã cập nhật bài viết.");
   } catch (error) {
     await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);
@@ -1326,7 +1326,7 @@ export async function updateSiteSettings(
     siteName: "Ten website",
     defaultSeoTitle: "SEO title mac dinh",
   });
-  if (Object.keys(fieldErrors).length) return fieldError("Vui long kiem tra settings.", fieldErrors);
+  if (Object.keys(fieldErrors).length) return fieldError("Vui lòng kiểm tra settings.", fieldErrors);
   const imagePayloadError = validateImagePayload(formData, ["heroImage"]);
   if (imagePayloadError) return fieldError(imagePayloadError, { heroImage: imagePayloadError });
 
@@ -1358,7 +1358,7 @@ export async function updateSiteSettings(
       [heroImage],
     );
     revalidateAdminAndPublic("/settings");
-    return success("Da luu settings.");
+    return success("Đã lưu settings.");
   } catch (error) {
     await cleanupUploadedOnFailure(uploadedUrls);
     return mutationError(error);

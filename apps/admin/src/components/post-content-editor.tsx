@@ -438,7 +438,7 @@ export function PostContentEditor({
         return { ...current, file: null, previewUrl: "", error: "" };
       }
       if (!file.type.startsWith("image/")) {
-        return { ...current, file: null, previewUrl: "", error: "Vui long chon file anh." };
+        return { ...current, file: null, previewUrl: "", error: "Vui lòng chọn file ảnh." };
       }
       return { ...current, file, previewUrl: URL.createObjectURL(file), error: "" };
     });
@@ -618,7 +618,7 @@ export function PostContentEditor({
               <div>
                 <h4 className="text-lg font-black">Them link</h4>
                 <p className="mt-1 text-sm font-bold text-[#657064]">
-                  Gan URL vao doan text dang chon hoac chen link moi.
+                  Gắn URL vào đoạn text đang chọn hoặc chèn link mới.
                 </p>
               </div>
               <button
@@ -642,11 +642,11 @@ export function PostContentEditor({
                 />
               </label>
               <label className="grid gap-1.5 text-sm font-bold text-[#2b332d]">
-                Text hien thi
+                Text hiển thị
                 <input
                   value={linkDialog.label}
                   onChange={(event) => setLinkDialog((current) => ({ ...current, label: event.target.value }))}
-                  placeholder="Dat ban ngay"
+                  placeholder="Đặt bàn ngay"
                   className="focus-ring min-h-11 rounded-md border border-[#cfd5c8] bg-white px-3 py-2 outline-none"
                 />
               </label>
@@ -658,7 +658,7 @@ export function PostContentEditor({
                 onClick={removeLink}
                 className="min-h-10 rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm font-black text-red-700"
               >
-                Xoa link
+                Xóa link
               </button>
               <div className="flex gap-2 sm:justify-end">
                 <button
@@ -686,9 +686,9 @@ export function PostContentEditor({
           <div className="w-full max-w-xl rounded-lg border border-[#dfe3d8] bg-white p-5 shadow-2xl">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h4 className="text-lg font-black">Them anh</h4>
+                <h4 className="text-lg font-black">Thêm ảnh</h4>
                 <p className="mt-1 text-sm font-bold text-[#657064]">
-                  Anh chi duoc upload len R2 sau khi bam Luu bai viet.
+                  Ảnh chỉ được upload lên R2 sau khi bấm Lưu bài viết.
                 </p>
               </div>
               <button
@@ -715,7 +715,7 @@ export function PostContentEditor({
                 <input
                   value={imageDialog.caption}
                   onChange={(event) => setImageDialog((current) => ({ ...current, caption: event.target.value }))}
-                  placeholder="Khong gian 99 Billiards"
+                  placeholder="Không gian 99 Billiards"
                   className="focus-ring min-h-11 rounded-md border border-[#cfd5c8] bg-white px-3 py-2 outline-none"
                 />
               </label>

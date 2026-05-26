@@ -65,9 +65,9 @@ export default async function PromotionDetailPage({ params }: PageProps) {
         </div>
       </article>
       <PublicFooter
-        kicker="Uu dai 99"
-        title="San sang cho van choi tiep theo?"
-        body="Lien he 99 Billiards de giu ban, hoi dieu kien ap dung uu dai va nhan tu van goi phu hop."
+        kicker="Ưu đãi 99"
+        title="Sẵn sàng cho ván chơi tiếp theo?"
+        body="Liên hệ 99 Billiards để giữ bàn, hỏi điều kiện áp dụng ưu đãi và nhận tư vấn gói phù hợp."
       />
       <div id="booking" />
       <BookingModal branches={branches} promotions={promotions} />

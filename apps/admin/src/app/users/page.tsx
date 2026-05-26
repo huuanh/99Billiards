@@ -31,7 +31,7 @@ export default async function UsersPage() {
   return (
     <AdminShell title="Users" subtitle="Quan tri tai khoan Google va phan quyen admin.">
       <Panel
-        title="Danh sach user"
+        title="Danh sách user"
         subtitle="User moi dang nhap Google se o trang thai cho phan quyen."
       >
         <div className="overflow-auto">
@@ -40,8 +40,8 @@ export default async function UsersPage() {
               <tr>
                 <th className="px-3 py-2">User</th>
                 <th className="px-3 py-2">Quyen</th>
-                <th className="px-3 py-2">Trang thai</th>
-                <th className="px-3 py-2">Dang nhap gan nhat</th>
+                <th className="px-3 py-2">Trạng thái</th>
+                <th className="px-3 py-2">Đăng nhập gần nhất</th>
                 <th className="px-3 py-2">Thao tac</th>
               </tr>
             </thead>
@@ -91,7 +91,7 @@ export default async function UsersPage() {
                             ))}
                           </select>
                           <button className="min-h-9 rounded-md bg-[#111713] px-3 py-1 text-sm font-bold text-white">
-                            Luu
+                            Lưu
                           </button>
                         </form>
                         <form action={updateAdminUserStatus}>
@@ -112,7 +112,7 @@ export default async function UsersPage() {
               ) : (
                 <tr>
                   <td colSpan={5} className="px-3 py-10 text-center text-[#657064]">
-                    Chua co user Google nao.
+                    Chưa có user Google nao.
                   </td>
                 </tr>
               )}

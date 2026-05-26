@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const settings = (await getProductPageSettings()) as ProductPageSettings;
 
   return {
-    title: settings.seoTitle || settings.heroTitle || "San pham 99 Billiards",
+    title: settings.seoTitle || settings.heroTitle || "Sản phẩm 99 Billiards",
     description: settings.seoDescription || settings.heroSubtitle,
   };
 }
@@ -86,10 +86,10 @@ export default async function ProductsPage({
             <span className="hidden text-sm font-black uppercase tracking-[0.2em] md:block">99 Billiards</span>
           </Link>
           <nav className="hidden items-center gap-5 text-xs font-black uppercase tracking-[0.16em] text-black/58 lg:flex">
-            <Link href="/products" className="rounded-full text-[#00684a]">San pham</Link>
-            <Link href="/#branches" className="rounded-full hover:text-[#00684a]">Co so</Link>
-            <Link href="/#promotions" className="rounded-full hover:text-[#00684a]">Uu dai</Link>
-            <Link href="/#news" className="rounded-full hover:text-[#00684a]">Tin tuc</Link>
+            <Link href="/products" className="rounded-full text-[#00684a]">Sản phẩm</Link>
+            <Link href="/#branches" className="rounded-full hover:text-[#00684a]">Cơ sở</Link>
+            <Link href="/#promotions" className="rounded-full hover:text-[#00684a]">Ưu đãi</Link>
+            <Link href="/#news" className="rounded-full hover:text-[#00684a]">Tin tức</Link>
             <CartLink />
           </nav>
           <a href={`tel:${siteConfig.hotline.replaceAll(" ", "")}`} className="focus-ring rounded-full bg-[#00684a] px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-white">
@@ -109,17 +109,17 @@ export default async function ProductsPage({
               {settings.heroEyebrow || "99 Billiards Store"}
             </p>
             <h1 className="mt-5 text-5xl font-black leading-[0.95] md:text-7xl lg:text-8xl">
-              {settings.heroTitle || "San pham cho moi van choi"}
+              {settings.heroTitle || "Sản phẩm cho mọi ván chơi"}
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-white/75">
-              {settings.heroSubtitle || "Catalog san pham, dich vu va phu kien billiards."}
+              {settings.heroSubtitle || "Catalog sản phẩm, dịch vụ và phụ kiện billiards."}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link href={settings.primaryCtaHref || "#catalog"} className="focus-ring rounded-full bg-[#d6ff3f] px-7 py-4 text-center text-sm font-black uppercase tracking-[0.16em] text-black">
-                {settings.primaryCtaLabel || "Xem san pham"}
+                {settings.primaryCtaLabel || "Xem sản phẩm"}
               </Link>
               <Link href={settings.secondaryCtaHref || "#contact"} className="focus-ring rounded-full border border-white/25 px-7 py-4 text-center text-sm font-black uppercase tracking-[0.16em] text-white">
-                {settings.secondaryCtaLabel || "Lien he tu van"}
+                {settings.secondaryCtaLabel || "Liên hệ tư vấn"}
               </Link>
             </div>
           </div>
@@ -128,12 +128,12 @@ export default async function ProductsPage({
               {settings.promoTitle || "Goi y nhanh"}
             </p>
             <p className="mt-3 text-sm leading-6 text-white/72">
-              {settings.promoText || "Loc theo danh muc, nhan hang hoac khoang gia de tim dung san pham."}
+              {settings.promoText || "Lọc theo danh mục, nhãn hàng hoặc khoảng giá để tìm đúng sản phẩm."}
             </p>
             <div className="mt-5 grid grid-cols-3 gap-3 text-center">
-              <Metric value={String(productsRaw.length)} label="San pham" />
-              <Metric value={String(categories.length)} label="Danh muc" />
-              <Metric value={String(brands.length)} label="Nhan hang" />
+              <Metric value={String(productsRaw.length)} label="Sản phẩm" />
+              <Metric value={String(categories.length)} label="Danh mục" />
+              <Metric value={String(brands.length)} label="Nhãn hàng" />
             </div>
           </div>
         </div>
@@ -141,18 +141,18 @@ export default async function ProductsPage({
 
       <section className="border-y border-black/10 bg-[#15120d] px-4 py-5 text-white md:px-6">
         <div className="mx-auto grid max-w-7xl gap-3 text-sm font-bold md:grid-cols-4">
-          <span>Van chuyen hoa toc khu vuc Ha Noi</span>
-          <span>Ho tro bao duong co mien phi</span>
-          <span>Nhieu phuong thuc thanh toan</span>
-          <span>Tu van theo ngan sach va trinh do</span>
+          <span>Vận chuyển hỏa tốc khu vực Hà Nội</span>
+          <span>Hỗ trợ bảo dưỡng cơ miễn phí</span>
+          <span>Nhiều phương thức thanh toán</span>
+          <span>Tư vấn theo ngân sách và trình độ</span>
         </div>
       </section>
 
       <section id="catalog" className="mx-auto grid max-w-7xl gap-8 px-4 py-14 md:px-6 lg:grid-cols-[280px_1fr]">
         <aside className="h-fit border border-black/10 bg-white p-4 shadow-sm lg:sticky lg:top-24">
-          <h2 className="text-lg font-black">Danh muc san pham</h2>
+          <h2 className="text-lg font-black">Danh mục sản phẩm</h2>
           <div className="mt-4 grid gap-2">
-            <FilterLink label="Tat ca san pham" param="category" value="" active={!selectedCategory} />
+            <FilterLink label="Tất cả sản phẩm" param="category" value="" active={!selectedCategory} />
             {categories.map((category) => (
               <FilterLink
                 key={category.id}
@@ -164,14 +164,14 @@ export default async function ProductsPage({
             ))}
           </div>
 
-          <h3 className="mt-8 text-sm font-black uppercase tracking-[0.14em] text-black/55">Nhan hang</h3>
+          <h3 className="mt-8 text-sm font-black uppercase tracking-[0.14em] text-black/55">Nhãn hàng</h3>
           <div className="mt-3 flex flex-wrap gap-2">
             {brands.map((brand) => (
               <FilterChip key={brand.id} label={brand.name} param="brand" value={brand.id} active={selectedBrand === brand.id} />
             ))}
           </div>
 
-          <h3 className="mt-8 text-sm font-black uppercase tracking-[0.14em] text-black/55">Khoang gia</h3>
+          <h3 className="mt-8 text-sm font-black uppercase tracking-[0.14em] text-black/55">Khoảng giá</h3>
           <div className="mt-3 grid gap-2">
             {priceRanges.map((range) => (
               <FilterLink
@@ -189,20 +189,20 @@ export default async function ProductsPage({
           <div className="flex flex-col gap-4 border-b border-black/10 pb-5 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.2em] text-[#00684a]">Catalog</p>
-              <h2 className="mt-2 text-4xl font-black">Tat ca san pham</h2>
-              <p className="mt-2 text-sm font-bold text-black/55">{filteredProducts.length} san pham dang hien thi</p>
+              <h2 className="mt-2 text-4xl font-black">Tất cả sản phẩm</h2>
+              <p className="mt-2 text-sm font-bold text-black/55">{filteredProducts.length} sản phẩm đang hiển thị</p>
             </div>
             <form action="/products" className="flex min-w-0 gap-2">
               <input
                 name="q"
                 defaultValue={query}
-                placeholder="Tim co, ngon, phu kien..."
+                placeholder="Tìm cơ, ngọn, phụ kiện..."
                 className="min-h-11 min-w-0 border border-black/15 bg-white px-4 text-sm font-bold outline-none focus:border-[#00684a]"
               />
               <button className="min-h-11 bg-[#00684a] px-5 text-sm font-black uppercase tracking-[0.12em] text-white">
                 <span className="inline-flex items-center gap-2">
                   <FontAwesomeIcon icon="magnifying-glass" className="h-4 w-4" />
-                  Tim
+                  Tìm
                 </span>
               </button>
             </form>
@@ -217,9 +217,9 @@ export default async function ProductsPage({
       </section>
 
       <PublicFooter
-        kicker="Tu van mua hang"
-        title="Can chon dung san pham?"
-        body="Gui nhu cau hoac goi hotline, doi ngu 99 Billiards se tu van san pham phu hop voi ngan sach va trinh do choi."
+        kicker="Tư vấn mua hàng"
+        title="Cần chọn đúng sản phẩm?"
+        body="Gửi nhu cầu hoặc gọi hotline, đội ngũ 99 Billiards sẽ tư vấn sản phẩm phù hợp với ngân sách và trình độ chơi."
       />
     </main>
   );
@@ -254,7 +254,7 @@ function ProductCard({
       <div className="relative aspect-[4/3] overflow-hidden bg-[#e8e0d2]">
         {product.image ? <Image src={product.image} alt={product.name} fill className="object-cover transition duration-500 group-hover:scale-105" /> : null}
         <div className="absolute left-3 top-3 flex gap-2">
-          {featured ? <span className="bg-[#d6ff3f] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.12em] text-black">Noi bat</span> : null}
+          {featured ? <span className="bg-[#d6ff3f] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.12em] text-black">Nổi bật</span> : null}
           {discount ? <span className="bg-red-600 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.12em] text-white">-{discount}%</span> : null}
         </div>
       </div>
@@ -270,7 +270,7 @@ function ProductCard({
             ) : null}
           </div>
           <span className="border border-black/10 px-3 py-2 text-xs font-black uppercase tracking-[0.1em] text-black/55">
-            {product.stockStatus === "out-of-stock" ? "Het hang" : product.stockStatus === "preorder" ? "Dat truoc" : "Con hang"}
+            {product.stockStatus === "out-of-stock" ? "Hết hàng" : product.stockStatus === "preorder" ? "Đặt trước" : "Còn hàng"}
           </span>
         </div>
       </div>

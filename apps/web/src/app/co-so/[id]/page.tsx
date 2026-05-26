@@ -6,6 +6,8 @@ import { getBranchById, getBranches, getPromotions } from "@99billiards/db";
 import type { Branch, Promotion } from "@99billiards/db/seed";
 import { BookingModal } from "@/components/booking-modal";
 import { MobileStickyActions } from "@/components/mobile-sticky-actions";
+import { PublicFooter } from "@/components/public-footer";
+import { PublicHeader } from "@/components/public-header";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -44,6 +46,7 @@ export default async function BranchDetailPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-[#050705] pb-20 text-[#f5f1e8] md:pb-0">
+      <PublicHeader active="branches" />
       <section className="relative min-h-[78vh] px-4 py-28 md:px-6">
         <Image src={branch.image} alt={branch.name} fill priority className="object-cover opacity-35" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-[#050705]/65 to-[#050705]" />
@@ -115,6 +118,12 @@ export default async function BranchDetailPage({ params }: PageProps) {
           )}
         </div>
       </section>
+
+      <PublicFooter
+        kicker="Đặt bàn 99"
+        title="Sẵn sàng cho ván kế tiếp?"
+        body={`Liên hệ ${branch.name} để giữ bàn, hỏi lịch trống và nhận tư vấn ưu đãi phù hợp.`}
+      />
 
       <div id="booking" />
       <BookingModal branches={branches} promotions={promotions} defaultBranchId={branch.id} />

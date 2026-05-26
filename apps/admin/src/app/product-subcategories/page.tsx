@@ -29,26 +29,26 @@ function SubcategoryForm({
     <AdminActionForm action={isEditing ? updateProductSubcategory : createProductSubcategory} closeModalOnSuccess>
       {subcategory?._id ? <input type="hidden" name="_id" value={subcategory._id} /> : null}
       <section className="rounded-lg border border-[#dfe3d8] bg-white p-4">
-        <h3 className="text-base font-black">Danh muc con / loai san pham</h3>
+        <h3 className="text-base font-black">Danh mục con / loại sản phẩm</h3>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <Input name="name" label="Ten" placeholder="Cuetec" defaultValue={subcategory?.name} />
           <Input name="slug" label="Slug" placeholder="cuetec" defaultValue={subcategory?.slug} />
           <input type="hidden" name="type" value="product-type" />
           <Select
             name="categoryId"
-            label="Danh muc cha"
+            label="Danh mục cha"
             options={categoryOptions}
             defaultValue={subcategory?.categoryId || ""}
           />
-          <Input name="sortOrder" label="Thu tu" placeholder="1" defaultValue={subcategory?.sortOrder} />
-          <Select name="status" label="Trang thai" options={["active", "hidden"]} defaultValue={subcategory?.status || "active"} />
+          <Input name="sortOrder" label="Thứ tự" placeholder="1" defaultValue={subcategory?.sortOrder} />
+          <Select name="status" label="Trạng thái" options={["active", "hidden"]} defaultValue={subcategory?.status || "active"} />
           <div className="md:col-span-2">
-            <Textarea name="description" label="Mo ta" defaultValue={subcategory?.description} />
+            <Textarea name="description" label="Mô tả" defaultValue={subcategory?.description} />
           </div>
         </div>
       </section>
       <div className="sticky bottom-0 flex justify-end border-t border-[#dfe3d8] bg-[#f6f7f3]/95 py-4 backdrop-blur">
-        <SaveButton label={isEditing ? "Cap nhat danh muc con" : "Tao danh muc con"} />
+        <SaveButton label={isEditing ? "Cập nhật danh mục con" : "Tạo danh mục con"} />
       </div>
     </AdminActionForm>
   );
@@ -63,12 +63,12 @@ export default async function ProductSubcategoriesPage() {
   const categoryNames = new Map(categories.map((category) => [category.id, category.name]));
 
   return (
-    <AdminShell title="Danh muc con" subtitle="Quan ly loai san pham nam duoi danh muc lon.">
+    <AdminShell title="Danh mục con" subtitle="Quản lý loại sản phẩm nằm dưới danh mục lớn.">
       <Panel
-        title="Danh muc con / loai san pham"
-        subtitle={`${subcategories.length} muc.`}
+        title="Danh mục con / loại sản phẩm"
+        subtitle={`${subcategories.length} mục.`}
         aside={
-          <FormModal trigger="Them muc" title="Them danh muc con" intent="primary">
+          <FormModal trigger="Thêm mục" title="Thêm danh mục con" intent="primary">
             <SubcategoryForm categories={categories} />
           </FormModal>
         }
@@ -79,9 +79,9 @@ export default async function ProductSubcategoriesPage() {
               <tr>
                 <th className="px-3 py-2">Ten</th>
                 <th className="px-3 py-2">Slug</th>
-                <th className="px-3 py-2">Danh muc cha</th>
-                <th className="px-3 py-2">Thu tu</th>
-                <th className="px-3 py-2">Trang thai</th>
+                <th className="px-3 py-2">Danh mục cha</th>
+                <th className="px-3 py-2">Thứ tự</th>
+                <th className="px-3 py-2">Trạng thái</th>
                 <th className="px-3 py-2">Thao tac</th>
               </tr>
             </thead>
@@ -98,7 +98,7 @@ export default async function ProductSubcategoriesPage() {
                   <td className="px-3 py-3">
                     {subcategory._id ? (
                       <div className="flex gap-2">
-                        <FormModal trigger="Sua" title={`Sua ${subcategory.name}`}>
+                        <FormModal trigger="Sửa" title={`Sửa ${subcategory.name}`}>
                           <SubcategoryForm subcategory={subcategory} categories={categories} />
                         </FormModal>
                         <form action={deleteProductSubcategory}>

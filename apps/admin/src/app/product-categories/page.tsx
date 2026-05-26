@@ -19,22 +19,22 @@ function CategoryForm({ category }: { category?: AdminProductCategory }) {
     <AdminActionForm action={isEditing ? updateProductCategory : createProductCategory} closeModalOnSuccess>
       {category?._id ? <input type="hidden" name="_id" value={category._id} /> : null}
       <section className="rounded-lg border border-[#dfe3d8] bg-white p-4">
-        <h3 className="text-base font-black">Danh muc san pham</h3>
+        <h3 className="text-base font-black">Danh mục sản phẩm</h3>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <Input name="name" label="Ten danh muc" placeholder="Co Pool" defaultValue={category?.name} />
+          <Input name="name" label="Tên danh mục" placeholder="Có Pool" defaultValue={category?.name} />
           <Input name="slug" label="Slug" placeholder="co-pool" defaultValue={category?.slug} />
-          <Input name="sortOrder" label="Thu tu" placeholder="1" defaultValue={category?.sortOrder} />
-          <Select name="status" label="Trang thai" options={["active", "hidden"]} defaultValue={category?.status || "active"} />
+          <Input name="sortOrder" label="Thứ tự" placeholder="1" defaultValue={category?.sortOrder} />
+          <Select name="status" label="Trạng thái" options={["active", "hidden"]} defaultValue={category?.status || "active"} />
           <div className="md:col-span-2">
-            <Textarea name="description" label="Mo ta" defaultValue={category?.description} />
+            <Textarea name="description" label="Mô tả" defaultValue={category?.description} />
           </div>
           <div className="md:col-span-2">
-            <ImageUploadField name="image" label="Anh danh muc" defaultValue={category?.image} />
+            <ImageUploadField name="image" label="Ảnh danh mục" defaultValue={category?.image} />
           </div>
         </div>
       </section>
       <div className="sticky bottom-0 flex justify-end border-t border-[#dfe3d8] bg-[#f6f7f3]/95 py-4 backdrop-blur">
-        <SaveButton label={isEditing ? "Cap nhat danh muc" : "Tao danh muc"} />
+        <SaveButton label={isEditing ? "Cập nhật danh mục" : "Tạo danh mục"} />
       </div>
     </AdminActionForm>
   );
@@ -45,12 +45,12 @@ export default async function ProductCategoriesPage() {
   const categories = (await getProductCategories({ includeHidden: true })) as AdminProductCategory[];
 
   return (
-    <AdminShell title="Danh muc san pham" subtitle="Quan ly nhom lon tren catalog /products.">
+    <AdminShell title="Danh mục sản phẩm" subtitle="Quản lý nhóm lớn trên catalog /products.">
       <Panel
-        title="Danh sach danh muc"
-        subtitle={`${categories.length} danh muc.`}
+        title="Danh sách danh mục"
+        subtitle={`${categories.length} danh mục.`}
         aside={
-          <FormModal trigger="Them danh muc" title="Them danh muc san pham" intent="primary">
+          <FormModal trigger="Thêm danh mục" title="Thêm danh mục sản phẩm" intent="primary">
             <CategoryForm />
           </FormModal>
         }
@@ -62,8 +62,8 @@ export default async function ProductCategoriesPage() {
                 <th className="px-3 py-2">Anh</th>
                 <th className="px-3 py-2">Ten</th>
                 <th className="px-3 py-2">Slug</th>
-                <th className="px-3 py-2">Thu tu</th>
-                <th className="px-3 py-2">Trang thai</th>
+                <th className="px-3 py-2">Thứ tự</th>
+                <th className="px-3 py-2">Trạng thái</th>
                 <th className="px-3 py-2">Thao tac</th>
               </tr>
             </thead>
@@ -75,7 +75,7 @@ export default async function ProductCategoriesPage() {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={category.image} alt="" className="h-10 w-14 rounded-md object-cover" />
                     ) : (
-                      <span className="text-xs text-[#657064]">Chua co</span>
+                      <span className="text-xs text-[#657064]">Chưa có</span>
                     )}
                   </td>
                   <td className="px-3 py-3 font-bold">{category.name}</td>
@@ -87,7 +87,7 @@ export default async function ProductCategoriesPage() {
                   <td className="px-3 py-3">
                     {category._id ? (
                       <div className="flex gap-2">
-                        <FormModal trigger="Sua" title={`Sua ${category.name}`}>
+                        <FormModal trigger="Sửa" title={`Sửa ${category.name}`}>
                           <CategoryForm category={category} />
                         </FormModal>
                         <form action={deleteProductCategory}>

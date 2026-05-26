@@ -21,7 +21,7 @@ export default function LoginPage({
           />
           <div>
             <p className="text-sm font-black uppercase tracking-[0.2em]">Billiards</p>
-            <h1 className="text-2xl font-black">Dang nhap quan tri</h1>
+            <h1 className="text-2xl font-black">Đăng nhập quản trị</h1>
           </div>
         </div>
 
@@ -61,7 +61,7 @@ export default function LoginPage({
           href="/api/auth/google/start"
           className="focus-ring flex min-h-12 items-center justify-center rounded-2xl border border-black/10 bg-white px-5 py-3 text-sm font-black text-[#0a100c] transition hover:bg-[#f4f6ef]"
         >
-          Dang nhap voi Google
+          Đăng nhập với Google
         </Link>
       </section>
     </main>
@@ -79,7 +79,7 @@ async function LoginError({
   if (params.error === "google-config") {
     return (
       <p role="alert" className="rounded-2xl bg-amber-50 p-3 text-sm font-bold text-amber-800">
-        Google login chua duoc cau hinh GOOGLE_CLIENT_ID va GOOGLE_CLIENT_SECRET.
+        Google login chưa được cấu hình GOOGLE_CLIENT_ID và GOOGLE_CLIENT_SECRET.
       </p>
     );
   }
@@ -94,7 +94,7 @@ async function LoginError({
 
   return (
     <p role="alert" className="rounded-2xl bg-red-50 p-3 text-sm font-bold text-red-700">
-      Email hoac mat khau chua dung.
+      Email hoặc mật khẩu chưa đúng.
     </p>
   );
 }

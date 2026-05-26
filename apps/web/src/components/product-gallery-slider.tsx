@@ -45,7 +45,7 @@ export function ProductGallerySlider({ images, productName }: { images: string[]
           type="button"
           onClick={() => setFullscreen(true)}
           className="relative aspect-square overflow-hidden border border-black/10 bg-white text-left"
-          aria-label="Xem anh san pham phong to"
+          aria-label="Xem ảnh sản phẩm phóng to"
         >
           <Image src={activeImage} alt={productName} fill priority className="object-cover" />
         </button>
@@ -61,7 +61,7 @@ export function ProductGallerySlider({ images, productName }: { images: string[]
                   "relative aspect-square overflow-hidden border bg-white",
                   index === activeIndex ? "border-[#00684a] ring-2 ring-[#00684a]/25" : "border-black/10",
                 ].join(" ")}
-                aria-label={`Xem anh ${index + 1}`}
+                aria-label={`Xem ảnh ${index + 1}`}
               >
                 <Image src={image} alt={`${productName} ${index + 1}`} fill className="object-cover transition hover:scale-105" />
               </button>
@@ -89,7 +89,7 @@ export function ProductGallerySlider({ images, productName }: { images: string[]
                 type="button"
                 onClick={previousImage}
                 className="absolute left-4 top-1/2 z-10 grid h-12 w-12 -translate-y-1/2 place-items-center border border-white/25 bg-white/12 text-3xl font-black"
-                aria-label="Anh truoc"
+                aria-label="Ảnh trước"
               >
                 <FontAwesomeIcon icon="chevron-left" className="h-5 w-5" />
               </button>
@@ -97,7 +97,7 @@ export function ProductGallerySlider({ images, productName }: { images: string[]
                 type="button"
                 onClick={nextImage}
                 className="absolute right-4 top-1/2 z-10 grid h-12 w-12 -translate-y-1/2 place-items-center border border-white/25 bg-white/12 text-3xl font-black"
-                aria-label="Anh tiep theo"
+                aria-label="Ảnh tiếp theo"
               >
                 <FontAwesomeIcon icon="chevron-right" className="h-5 w-5" />
               </button>
@@ -119,7 +119,7 @@ export function ProductGallerySlider({ images, productName }: { images: string[]
                     "relative h-16 w-16 shrink-0 overflow-hidden border",
                     index === activeIndex ? "border-[#d6ff3f]" : "border-white/20",
                   ].join(" ")}
-                  aria-label={`Xem anh ${index + 1}`}
+                  aria-label={`Xem ảnh ${index + 1}`}
                 >
                   <Image src={image} alt={`${productName} ${index + 1}`} fill className="object-cover" />
                 </button>

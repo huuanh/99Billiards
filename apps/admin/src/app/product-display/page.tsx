@@ -11,8 +11,8 @@ export default async function ProductDisplayPage() {
   const settings = (await getProductPageSettings()) as ProductPageSettings;
 
   return (
-    <AdminShell title="Hien thi trang san pham" subtitle="Quan tri hero, CTA va SEO cho /products.">
-      <Panel title="Noi dung /products" subtitle="Anh hero va copy se hien tren trang catalog public.">
+    <AdminShell title="Hiển thị trang sản phẩm" subtitle="Quản trị hero, CTA và SEO cho /products.">
+      <Panel title="Nội dung /products" subtitle="Ảnh hero và copy sẽ hiển thị trên trang catalog public.">
         <AdminActionForm action={updateProductPageSettings}>
           <section className="rounded-lg border border-[#dfe3d8] bg-white p-4">
             <h3 className="text-base font-black">Hero</h3>
@@ -20,14 +20,14 @@ export default async function ProductDisplayPage() {
               <Input name="heroEyebrow" label="Eyebrow" defaultValue={settings.heroEyebrow} />
               <Input name="heroTitle" label="Tieu de hero" defaultValue={settings.heroTitle} />
               <div className="md:col-span-2">
-                <Textarea name="heroSubtitle" label="Mo ta hero" defaultValue={settings.heroSubtitle} />
+                <Textarea name="heroSubtitle" label="Mô tả hero" defaultValue={settings.heroSubtitle} />
               </div>
-              <Input name="primaryCtaLabel" label="CTA chinh" defaultValue={settings.primaryCtaLabel} />
-              <Input name="primaryCtaHref" label="Link CTA chinh" defaultValue={settings.primaryCtaHref} />
+              <Input name="primaryCtaLabel" label="CTA chính" defaultValue={settings.primaryCtaLabel} />
+              <Input name="primaryCtaHref" label="Link CTA chính" defaultValue={settings.primaryCtaHref} />
               <Input name="secondaryCtaLabel" label="CTA phu" defaultValue={settings.secondaryCtaLabel} />
               <Input name="secondaryCtaHref" label="Link CTA phu" defaultValue={settings.secondaryCtaHref} />
               <div className="md:col-span-2">
-                <ImageUploadField name="heroImage" label="Anh hero" defaultValue={settings.heroImage} />
+                <ImageUploadField name="heroImage" label="Ảnh hero" defaultValue={settings.heroImage} />
               </div>
             </div>
           </section>
@@ -37,7 +37,7 @@ export default async function ProductDisplayPage() {
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <Input name="promoTitle" label="Tieu de khoi goi y" defaultValue={settings.promoTitle} />
               <div className="md:col-span-2">
-                <Textarea name="promoText" label="Noi dung goi y" defaultValue={settings.promoText} />
+                <Textarea name="promoText" label="Nội dung gợi ý" defaultValue={settings.promoText} />
               </div>
             </div>
           </section>
@@ -53,7 +53,7 @@ export default async function ProductDisplayPage() {
           </section>
 
           <div className="sticky bottom-0 flex justify-end border-t border-[#dfe3d8] bg-[#f6f7f3]/95 py-4 backdrop-blur">
-            <SaveButton label="Luu hien thi" />
+            <SaveButton label="Lưu hiển thị" />
           </div>
         </AdminActionForm>
       </Panel>
