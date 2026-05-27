@@ -15,11 +15,11 @@ import { CartLink } from "@/components/cart-link";
 import { PublicFooter } from "@/components/public-footer";
 
 const priceRanges = [
-  { label: "Duoi 2 trieu", min: 0, max: 2_000_000 },
-  { label: "2 - 4 trieu", min: 2_000_000, max: 4_000_000 },
-  { label: "4 - 7 trieu", min: 4_000_000, max: 7_000_000 },
-  { label: "7 - 13 trieu", min: 7_000_000, max: 13_000_000 },
-  { label: "Tren 13 trieu", min: 13_000_000, max: Number.POSITIVE_INFINITY },
+  { label: "Dưới 2 triệu", min: 0, max: 2_000_000 },
+  { label: "2 - 4 triệu", min: 2_000_000, max: 4_000_000 },
+  { label: "4 - 7 triệu", min: 4_000_000, max: 7_000_000 },
+  { label: "7 - 13 triệu", min: 7_000_000, max: 13_000_000 },
+  { label: "Trên 13 triệu", min: 13_000_000, max: Number.POSITIVE_INFINITY },
 ];
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -123,9 +123,9 @@ export default async function ProductsPage({
               </Link>
             </div>
           </div>
-          <div className="border border-white/15 bg-black/40 p-5 text-white backdrop-blur-md">
+          <div className="rounded-lg border border-white/15 bg-black/40 p-5 text-white backdrop-blur-md">
             <p className="text-xs font-black uppercase tracking-[0.25em] text-[#d6ff3f]">
-              {settings.promoTitle || "Goi y nhanh"}
+              {settings.promoTitle || "Gợi ý nhanh"}
             </p>
             <p className="mt-3 text-sm leading-6 text-white/72">
               {settings.promoText || "Lọc theo danh mục, nhãn hàng hoặc khoảng giá để tìm đúng sản phẩm."}
@@ -149,7 +149,7 @@ export default async function ProductsPage({
       </section>
 
       <section id="catalog" className="mx-auto grid max-w-7xl gap-8 px-4 py-14 md:px-6 lg:grid-cols-[280px_1fr]">
-        <aside className="h-fit border border-black/10 bg-white p-4 shadow-sm lg:sticky lg:top-24">
+        <aside className="h-fit rounded-lg border border-black/10 bg-white p-4 shadow-sm lg:sticky lg:top-24">
           <h2 className="text-lg font-black">Danh mục sản phẩm</h2>
           <div className="mt-4 grid gap-2">
             <FilterLink label="Tất cả sản phẩm" param="category" value="" active={!selectedCategory} />
@@ -192,14 +192,14 @@ export default async function ProductsPage({
               <h2 className="mt-2 text-4xl font-black">Tất cả sản phẩm</h2>
               <p className="mt-2 text-sm font-bold text-black/55">{filteredProducts.length} sản phẩm đang hiển thị</p>
             </div>
-            <form action="/products" className="flex min-w-0 gap-2">
+            <form action="/products" className="flex w-full min-w-0 gap-2 md:w-auto">
               <input
                 name="q"
                 defaultValue={query}
                 placeholder="Tìm cơ, ngọn, phụ kiện..."
-                className="min-h-11 min-w-0 border border-black/15 bg-white px-4 text-sm font-bold outline-none focus:border-[#00684a]"
+                className="min-h-11 min-w-0 flex-1 rounded-lg border border-black/15 bg-white px-4 text-sm font-bold outline-none focus:border-[#00684a] md:w-80"
               />
-              <button className="min-h-11 bg-[#00684a] px-5 text-sm font-black uppercase tracking-[0.12em] text-white">
+              <button className="min-h-11 rounded-lg bg-[#00684a] px-5 text-sm font-black uppercase tracking-[0.12em] text-white">
                 <span className="inline-flex items-center gap-2">
                   <FontAwesomeIcon icon="magnifying-glass" className="h-4 w-4" />
                   Tìm
@@ -209,9 +209,22 @@ export default async function ProductsPage({
           </div>
 
           <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {filteredProducts.map((product) => (
+            {filteredProducts.length ? filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} categoryNames={categoryNames} subcategoryNames={subcategoryNames} brandNames={brandNames} />
-            ))}
+            )) : (
+              <div className="rounded-lg border border-dashed border-black/20 bg-white p-8 md:col-span-2 xl:col-span-3">
+                <p className="text-2xl font-black">Không tìm thấy sản phẩm phù hợp</p>
+                <p className="mt-3 max-w-xl text-sm leading-6 text-black/58">
+                  Thử bỏ bớt bộ lọc hoặc tìm bằng từ khóa rộng hơn. Đội ngũ 99 Billiards vẫn có thể tư vấn theo ngân sách qua hotline.
+                </p>
+                <Link
+                  href="/products"
+                  className="focus-ring mt-6 inline-flex rounded-lg bg-[#00684a] px-5 py-3 text-sm font-black uppercase tracking-[0.12em] text-white"
+                >
+                  Xóa bộ lọc
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -249,7 +262,7 @@ function ProductCard({
   return (
     <Link
       href={`/products/${product.id}`}
-      className="group block overflow-hidden border border-black/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+      className="group block overflow-hidden rounded-lg border border-black/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-[#e8e0d2]">
         {product.image ? <Image src={product.image} alt={product.name} fill className="object-cover transition duration-500 group-hover:scale-105" /> : null}
@@ -269,7 +282,7 @@ function ProductCard({
               <p className="text-sm font-bold text-black/40 line-through">{formatCurrency(product.compareAtPrice)}</p>
             ) : null}
           </div>
-          <span className="border border-black/10 px-3 py-2 text-xs font-black uppercase tracking-[0.1em] text-black/55">
+          <span className="shrink-0 rounded-md border border-black/10 px-3 py-2 text-xs font-black uppercase tracking-[0.1em] text-black/55">
             {product.stockStatus === "out-of-stock" ? "Hết hàng" : product.stockStatus === "preorder" ? "Đặt trước" : "Còn hàng"}
           </span>
         </div>
@@ -280,7 +293,7 @@ function ProductCard({
 
 function Metric({ value, label }: { value: string; label: string }) {
   return (
-    <div className="border border-white/10 bg-white/8 p-3">
+    <div className="rounded-lg border border-white/10 bg-white/8 p-3">
       <p className="text-2xl font-black">{value}</p>
       <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.14em] text-white/48">{label}</p>
     </div>
@@ -292,7 +305,7 @@ function FilterLink({ label, param, value, active }: { label: string; param: str
   return (
     <Link
       href={href}
-      className={`block border px-3 py-2 text-sm font-bold transition ${
+      className={`block rounded-md border px-3 py-2 text-sm font-bold transition ${
         active ? "border-[#00684a] bg-[#00684a] text-white" : "border-black/10 bg-[#f7f4ec] text-black/68 hover:border-[#00684a]"
       }`}
     >
@@ -305,7 +318,7 @@ function FilterChip({ label, param, value, active }: { label: string; param: str
   return (
     <Link
       href={`/products?${param}=${encodeURIComponent(value)}`}
-      className={`border px-3 py-2 text-xs font-black uppercase tracking-[0.1em] ${
+      className={`rounded-md border px-3 py-2 text-xs font-black uppercase tracking-[0.1em] ${
         active ? "border-[#00684a] bg-[#00684a] text-white" : "border-black/10 bg-white text-black/62"
       }`}
     >

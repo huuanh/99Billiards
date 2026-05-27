@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { FontAwesomeIcon, formatCurrency } from "@99billiards/ui";
-import { type CartItem, cartTotal, readCart, writeCart } from "./cart-storage";
+import { cartTotal, readCart, subscribeCart, writeCart } from "./cart-storage";
 
 type SubmitState = {
   ok: boolean;
@@ -13,15 +13,11 @@ type SubmitState = {
 };
 
 export function CheckoutPageClient() {
-  const [items, setItems] = useState<CartItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [state, setState] = useState<SubmitState>({ ok: false, message: "" });
+  const items = useSyncExternalStore(subscribeCart, readCart, () => []);
   const total = useMemo(() => cartTotal(items), [items]);
   const totalQuantity = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items]);
-
-  useEffect(() => {
-    setItems(readCart());
-  }, []);
 
   async function submitOrder(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -60,7 +56,6 @@ export function CheckoutPageClient() {
       }
 
       writeCart([]);
-      setItems([]);
       setState({ ok: true, message: "Đặt hàng thành công. 99 Billiards sẽ liên hệ xác nhận đơn.", orderCode: data.orderCode });
     } finally {
       setSubmitting(false);

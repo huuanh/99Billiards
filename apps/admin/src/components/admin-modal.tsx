@@ -46,8 +46,8 @@ export function FormModal({
         onClick={() => setOpen(true)}
         className={
           intent === "primary"
-            ? "focus-ring min-h-9 rounded-md bg-[#d6ff3f] px-3 py-2 text-sm font-black text-black"
-            : "focus-ring min-h-9 rounded-md border border-[#cfd5c8] bg-white px-3 py-2 text-sm font-bold text-[#111713]"
+            ? "focus-ring min-h-9 rounded-md bg-[#d6ff3f] px-3 py-2 text-sm font-black text-black transition hover:bg-[#c6f02f]"
+            : "focus-ring min-h-9 rounded-md border border-[#cfd5c8] bg-white px-3 py-2 text-sm font-bold text-[#111713] transition hover:border-[#9ea99a]"
         }
       >
         <span className="inline-flex items-center gap-2">
@@ -63,9 +63,9 @@ export function FormModal({
       ) : null}
 
       {open ? (
-        <div className="fixed inset-0 z-50 bg-[#f6f7f3] text-[#111713]">
+        <div className="fixed inset-0 z-50 bg-[#f4f6f1] text-[#111713]">
           <div className="flex h-full flex-col">
-            <header className="flex flex-col gap-3 border-b border-[#dfe3d8] bg-white px-4 py-4 md:flex-row md:items-center md:justify-between md:px-6">
+            <header className="flex flex-col gap-3 border-b border-[#dfe3d8] bg-white px-4 py-4 shadow-sm md:flex-row md:items-center md:justify-between md:px-6">
               <div>
                 <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#007a53]">
                   CMS editor
@@ -76,7 +76,7 @@ export function FormModal({
               <button
                 type="button"
                 onClick={() => close()}
-                className="focus-ring min-h-10 rounded-md border border-[#cfd5c8] bg-[#111713] px-4 py-2 text-sm font-bold text-white"
+                className="focus-ring min-h-10 rounded-md border border-[#cfd5c8] bg-[#111713] px-4 py-2 text-sm font-bold text-white transition hover:bg-black"
               >
                 <span className="inline-flex items-center gap-2">
                   <FontAwesomeIcon icon="xmark" className="h-3.5 w-3.5" />

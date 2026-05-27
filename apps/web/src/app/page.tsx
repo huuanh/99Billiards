@@ -6,10 +6,11 @@ import { siteConfig } from "@99billiards/config";
 import { formatCurrency } from "@99billiards/ui";
 import { BilliardsHero3D } from "@/components/billiards-hero-3d";
 import { BookingModal } from "@/components/booking-modal";
+import { CartLink } from "@/components/cart-link";
 import { MobileStickyActions } from "@/components/mobile-sticky-actions";
 
 const nav = [
-  ["Home", "#home"],
+  ["Trang chủ", "#home"],
   ["Sản phẩm", "#products"],
   ["Cơ sở", "#branches"],
   ["Ưu đãi", "#promotions"],
@@ -31,6 +32,12 @@ export default async function Home() {
   const posts = postsRaw as Post[];
   const districts = Array.from(new Set(branches.map((branch) => branch.district)));
   const featuredProducts = products.filter((product) => product.featured).slice(0, 4);
+  const openBranches = branches.filter((branch) => branch.status === "open").length;
+  const heroMetrics = [
+    { value: `${branches.length}+`, label: "cơ sở" },
+    { value: `${openBranches}`, label: "đang mở" },
+    { value: `${products.length}+`, label: "sản phẩm" },
+  ];
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#050705] pb-20 text-[#f5f1e8] md:pb-0">
@@ -73,6 +80,7 @@ export default async function Home() {
                   {label}
                 </Link>
               ))}
+              <CartLink className="hover:text-[#d6ff3f]" />
             </nav>
             <a
               href={`tel:${siteConfig.hotline.replaceAll(" ", "")}`}
@@ -99,6 +107,14 @@ export default async function Home() {
               99 Billiards gom trải nghiệm bàn chuẩn, cafe, đồ ăn, giải đấu và livestream kèo hot
               vào một hệ thống cơ sở luôn sáng đèn.
             </p>
+            <div className="mt-7 grid max-w-xl grid-cols-3 border-y border-white/12 bg-black/25 text-center backdrop-blur-sm">
+              {heroMetrics.map((metric) => (
+                <div key={metric.label} className="border-r border-white/10 px-3 py-4 last:border-r-0">
+                  <p className="text-2xl font-black text-white md:text-3xl">{metric.value}</p>
+                  <p className="mt-1 text-[11px] font-black uppercase tracking-[0.18em] text-white/48">{metric.label}</p>
+                </div>
+              ))}
+            </div>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="#branches"
@@ -118,19 +134,21 @@ export default async function Home() {
       </section>
 
       <section id="products" className="mx-auto max-w-7xl px-4 py-24 md:px-6">
-        <SectionTitle kicker="Products" title="Sản phẩm & dịch vụ" />
-        <Link
-          href="/products"
-          className="focus-ring mt-6 inline-flex rounded-full border border-white/15 px-5 py-3 text-xs font-black uppercase tracking-[0.18em] text-white/75 hover:border-[#d6ff3f] hover:text-[#d6ff3f]"
-        >
-          Xem tất cả sản phẩm
-        </Link>
-        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {featuredProducts.map((product) => (
+        <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <SectionTitle kicker="Products" title="Sản phẩm & dịch vụ" />
+          <Link
+            href="/products"
+            className="focus-ring inline-flex w-fit rounded-full border border-white/15 px-5 py-3 text-xs font-black uppercase tracking-[0.18em] text-white/75 hover:border-[#d6ff3f] hover:text-[#d6ff3f]"
+          >
+            Xem tất cả sản phẩm
+          </Link>
+        </div>
+        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {featuredProducts.length ? featuredProducts.map((product) => (
             <Link
               key={product.id}
               href={`/products/${product.id}`}
-              className="group overflow-hidden rounded-[1.6rem] border border-white/10 bg-white/[0.04] transition hover:-translate-y-1 hover:border-[#d6ff3f]/45 hover:bg-white/[0.07]"
+              className="group overflow-hidden rounded-lg border border-white/10 bg-white/[0.04] transition hover:-translate-y-1 hover:border-[#d6ff3f]/45 hover:bg-white/[0.07]"
             >
               <div className="relative aspect-[4/3] overflow-hidden">
                 <Image src={product.image} alt={product.name} fill className="object-cover transition duration-500 group-hover:scale-105" />
@@ -142,13 +160,17 @@ export default async function Home() {
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-[#d6ff3f]">
                   {product.category}
                 </p>
-                <h3 className="mt-2 text-2xl font-black">{product.name}</h3>
+                <h3 className="mt-2 min-h-14 text-xl font-black leading-tight">{product.name}</h3>
                 <p className="mt-4 text-lg font-black text-[#d6ff3f]">
                   {formatCurrency(product.price)}
                 </p>
               </div>
             </Link>
-          ))}
+          )) : (
+            <div className="rounded-lg border border-white/10 bg-white/[0.04] p-6 text-white/70 md:col-span-2 xl:col-span-4">
+              Chưa có sản phẩm nổi bật. Vào catalog để xem toàn bộ sản phẩm hiện có.
+            </div>
+          )}
         </div>
       </section>
 
@@ -164,7 +186,7 @@ export default async function Home() {
           </div>
           <div className="mt-10 grid gap-5 lg:grid-cols-2">
             {branches.map((branch) => (
-              <article key={branch.id} className="grid overflow-hidden rounded-[1.6rem] border border-white/10 bg-black/25 md:grid-cols-[0.9fr_1.1fr]">
+              <article key={branch.id} className="grid overflow-hidden rounded-lg border border-white/10 bg-black/25 md:grid-cols-[0.9fr_1.1fr]">
                 <div className="relative min-h-64 overflow-hidden">
                   <Image src={branch.image} alt={branch.name} fill className="object-cover" />
                   <span className="absolute left-4 top-4 rounded-full bg-[#d6ff3f] px-3 py-2 text-xs font-black uppercase tracking-[0.18em] text-black">
@@ -206,7 +228,7 @@ export default async function Home() {
         <SectionTitle kicker="Promotion" title="Ưu đãi đang chạy" />
         <div className="mt-10 grid gap-5 lg:grid-cols-3">
           {promotions.map((promotion) => (
-            <Link key={promotion.id} href={`/uu-dai/${promotion.id}`} className="relative min-h-96 overflow-hidden rounded-[1.8rem] border border-white/10 p-6">
+            <Link key={promotion.id} href={`/uu-dai/${promotion.id}`} className="relative min-h-96 overflow-hidden rounded-lg border border-white/10 p-6">
               <Image src={promotion.image} alt={promotion.title} fill className="object-cover opacity-55" />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent" />
               <div className="relative flex h-full min-h-80 flex-col justify-end">
@@ -226,8 +248,8 @@ export default async function Home() {
           <SectionTitle kicker="Newsroom" title="Tin tức & kèo đấu" dark />
           <div className="mt-10 grid gap-5 md:grid-cols-3">
             {posts.map((post) => (
-              <Link key={post.id} href={`/tin-tuc/${post.id}`} className="rounded-[1.5rem] bg-white p-4 shadow-xl">
-                <div className="relative aspect-[4/3] overflow-hidden rounded-[1.2rem]">
+              <Link key={post.id} href={`/tin-tuc/${post.id}`} className="rounded-lg bg-white p-4 shadow-xl">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-md">
                   <Image src={post.image} alt={post.title} fill className="object-cover" />
                 </div>
                 <p className="mt-5 text-xs font-black uppercase tracking-[0.2em] text-emerald-700">
@@ -264,7 +286,7 @@ export default async function Home() {
 }
 
 function SectionTitle({ kicker, title, dark = false }: { kicker: string; title: string; dark?: boolean }) {
-  const displayTitle = kicker === "Products" ? "Hàng nổi bật" : title;
+  const displayTitle = kicker === "Products" ? "Sản phẩm nổi bật" : title;
 
   return (
     <div>

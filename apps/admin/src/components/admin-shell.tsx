@@ -18,12 +18,13 @@ const navItems = [
   { label: "Đặt bàn", href: "/bookings", section: "Vận hành", permission: "bookings" },
   { label: "Bán hàng", href: "/sales-orders", section: "Vận hành", permission: "sales" },
   { label: "Media", href: "/media", section: "Tài sản", permission: "media" },
-  { label: "Users", href: "/users", section: "He thong", permission: "users" },
-  { label: "Settings", href: "/settings", section: "He thong", permission: "settings" },
+  { label: "Users", href: "/users", section: "Hệ thống", permission: "users" },
+  { label: "Settings", href: "/settings", section: "Hệ thống", permission: "settings" },
 ] satisfies Array<{ label: string; href: string; section: string; permission: AdminPermission }>;
 
 export async function AdminShell({
   title,
+  actions,
   children,
 }: {
   title: string;
@@ -41,9 +42,9 @@ export async function AdminShell({
   }, {});
 
   return (
-    <main className="min-h-screen bg-[#f6f7f3] text-[#111713]">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-[#dfe3d8] bg-[#0b120d] text-white lg:block">
-        <div className="border-b border-white/10 px-5 py-4">
+    <main className="min-h-screen bg-[#f4f6f1] text-[#111713]">
+      <aside className="fixed inset-y-0 left-0 hidden w-72 border-r border-[#dfe3d8] bg-[#0b120d] text-white lg:block">
+        <div className="border-b border-white/10 px-5 py-5">
           <Link href={homeHref} className="focus-ring flex items-center gap-3 rounded-lg">
             <Image
               src="/logo.jpg"
@@ -54,7 +55,7 @@ export async function AdminShell({
               priority
             />
             <div>
-              <p className="text-sm font-black uppercase tracking-[0.18em]">Billiards</p>
+              <p className="text-sm font-black uppercase tracking-[0.18em]">99 Admin</p>
               <p className="text-[11px] uppercase tracking-[0.16em] text-white/45">
                 {roleLabels[session.role]}
               </p>
@@ -62,7 +63,7 @@ export async function AdminShell({
           </Link>
         </div>
 
-        <nav className="space-y-5 px-3 py-5">
+        <nav className="h-[calc(100vh-82px)] space-y-5 overflow-auto px-3 py-5">
           {Object.entries(groupedNav).map(([section, items]) => (
             <div key={section}>
               <p className="px-3 text-[10px] font-black uppercase tracking-[0.22em] text-white/35">
@@ -73,7 +74,7 @@ export async function AdminShell({
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="focus-ring flex min-h-9 items-center justify-between rounded-md px-3 py-2 text-sm font-bold text-white/75 transition hover:bg-white/10 hover:text-white"
+                    className="focus-ring flex min-h-10 items-center justify-between rounded-md px-3 py-2 text-sm font-bold text-white/75 transition hover:bg-white/10 hover:text-white"
                   >
                     <span>{item.label}</span>
                     <span className="text-white/25">&gt;</span>
@@ -85,24 +86,107 @@ export async function AdminShell({
         </nav>
       </aside>
 
-      <section className="lg:pl-64">
-        <header className="sticky top-0 z-20 border-b border-[#dfe3d8] bg-[#f6f7f3]/92 backdrop-blur-xl">
-          <div className="flex min-h-16 items-center justify-between gap-3 px-4 py-3 md:px-6">
-            <h1 className="min-w-0 truncate text-2xl font-black leading-tight md:text-3xl">{title}</h1>
-            <div className="flex items-center gap-3">
-              <div className="hidden text-right text-xs font-bold text-[#657064] sm:block">
-                <p className="text-[#111713]">{session.name || session.email}</p>
-                <p>{session.email}</p>
+      <section className="lg:pl-72">
+        <header className="sticky top-0 z-20 bg-[#f4f6f1]/94 backdrop-blur-xl">
+          <div className="relative flex min-h-14 items-center justify-between border-b border-[#283044] bg-[#171b29] px-4 py-2 text-white lg:hidden">
+            <details>
+              <summary className="focus-ring grid h-10 w-10 cursor-pointer list-none place-items-center rounded-md border border-white/10 text-white/80 [&::-webkit-details-marker]:hidden">
+                <span className="grid gap-1">
+                  <span className="block h-0.5 w-4 rounded-full bg-current" />
+                  <span className="block h-0.5 w-4 rounded-full bg-current" />
+                  <span className="block h-0.5 w-4 rounded-full bg-current" />
+                </span>
+              </summary>
+              <div className="absolute left-4 right-4 top-[calc(100%+0.5rem)] z-30 overflow-hidden rounded-lg border border-white/10 bg-[#171b29] shadow-2xl">
+                <nav className="max-h-[72vh] overflow-auto px-2 py-2">
+                  {Object.entries(groupedNav).map(([section, items]) => (
+                    <div key={section} className="py-2">
+                      <p className="px-3 text-[10px] font-black uppercase tracking-[0.18em] text-white/35">{section}</p>
+                      <div className="mt-1 grid gap-1">
+                        {items.map((item) => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className="focus-ring flex min-h-10 items-center justify-between rounded-md px-3 py-2 text-sm font-bold text-white/82 hover:bg-white/10"
+                          >
+                            <span>{item.label}</span>
+                            <span className="text-white/25">&gt;</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </nav>
               </div>
-              <form action={logoutAdmin}>
-                <button className="focus-ring min-h-9 rounded-md bg-[#111713] px-3 py-2 text-sm font-bold text-white">
-                  <span className="inline-flex items-center gap-2">
-                    <FontAwesomeIcon icon="arrow-left" className="h-3.5 w-3.5" />
-                    Đăng xuất
-                  </span>
-                </button>
-              </form>
+            </details>
+
+            <span className="text-sm font-black uppercase tracking-[0.08em]">
+              99 <span className="text-[#d6ff3f]">Admin</span>
+            </span>
+
+            <details>
+              <summary className="focus-ring cursor-pointer list-none rounded-full [&::-webkit-details-marker]:hidden">
+                <span className="grid h-10 w-10 place-items-center rounded-full bg-emerald-700 text-sm font-black">
+                  {(session.name || session.email || "A").slice(0, 1).toUpperCase()}
+                </span>
+              </summary>
+              <div className="absolute right-4 top-[calc(100%+0.5rem)] z-40 w-[min(21rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-white/10 bg-[#171b29] shadow-2xl">
+                <div className="border-b border-white/10 px-4 py-3">
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-white/45">
+                    {roleLabels[session.role]}
+                  </p>
+                  <p className="mt-1 truncate text-sm font-bold text-white/80">{session.email}</p>
+                </div>
+                <div className="grid gap-2 p-3">
+                  {actions ? <div className="grid gap-2 [&>a]:justify-center [&>a]:text-center">{actions}</div> : null}
+                  <form action={logoutAdmin}>
+                    <button className="focus-ring min-h-10 w-full rounded-md bg-white px-3 py-2 text-sm font-black text-[#111713]">
+                      <span className="inline-flex items-center justify-center gap-2">
+                        <FontAwesomeIcon icon="arrow-left" className="h-3.5 w-3.5" />
+                        Đăng xuất
+                      </span>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <div className="flex min-h-14 items-center justify-between gap-3 border-b border-[#dfe3d8] px-4 py-3 md:px-6">
+            <div className="min-w-0">
+              <h1 className="min-w-0 truncate text-2xl font-black leading-tight md:text-3xl">{title}</h1>
             </div>
+            <details className="relative hidden lg:block">
+              <summary className="focus-ring flex cursor-pointer list-none items-center gap-3 rounded-md px-2 py-1 text-right [&::-webkit-details-marker]:hidden">
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-black text-[#111713]">{session.name || "Admin"}</span>
+                  <span className="block truncate text-xs font-bold text-[#657064]">{session.email}</span>
+                </span>
+                <span className="grid h-9 w-9 place-items-center rounded-full bg-[#111713] text-sm font-black text-white">
+                  {(session.name || session.email || "A").slice(0, 1).toUpperCase()}
+                </span>
+              </summary>
+              <div className="absolute right-0 top-[calc(100%+0.6rem)] z-30 w-72 overflow-hidden rounded-lg border border-[#dfe3d8] bg-white shadow-2xl">
+                <div className="border-b border-[#e7eadf] px-4 py-3">
+                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#007a53]">
+                    {roleLabels[session.role]}
+                  </p>
+                  <p className="mt-1 truncate text-sm font-black text-[#111713]">{session.name || session.email}</p>
+                  <p className="truncate text-xs font-bold text-[#657064]">{session.email}</p>
+                </div>
+                <div className="grid gap-2 p-3">
+                  {actions ? <div className="grid gap-2 [&>a]:justify-center [&>a]:text-center">{actions}</div> : null}
+                  <form action={logoutAdmin}>
+                    <button className="focus-ring min-h-10 w-full rounded-md bg-[#111713] px-3 py-2 text-sm font-bold text-white">
+                      <span className="inline-flex items-center justify-center gap-2">
+                        <FontAwesomeIcon icon="arrow-left" className="h-3.5 w-3.5" />
+                        Đăng xuất
+                      </span>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </details>
           </div>
         </header>
 
@@ -122,7 +206,7 @@ export function Metric({
   note?: string;
 }) {
   return (
-    <div className="rounded-lg border border-[#dfe3d8] bg-white p-4 shadow-sm">
+    <div className="rounded-lg border border-[#dfe3d8] bg-white p-4 shadow-sm transition hover:border-[#cbd3c4]">
       <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#657064]">{label}</p>
       <div className="mt-2 flex items-end justify-between gap-3">
         <p className="text-3xl font-black tabular-nums">{value}</p>
@@ -144,8 +228,8 @@ export function Panel({
   aside?: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg border border-[#dfe3d8] bg-white shadow-sm">
-      <div className="flex flex-col gap-3 border-b border-[#e7eadf] px-4 py-3 md:flex-row md:items-center md:justify-between">
+    <section className="min-w-0 rounded-lg border border-[#dfe3d8] bg-white shadow-sm">
+      <div className="flex flex-col gap-3 border-b border-[#e7eadf] px-4 py-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-base font-black">{title}</h2>
           {subtitle ? <p className="mt-1 text-sm text-[#657064]">{subtitle}</p> : null}
@@ -159,7 +243,7 @@ export function Panel({
 
 export function Toolbar({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-4 flex flex-col gap-2 rounded-lg border border-[#dfe3d8] bg-[#f8faf5] p-3 md:flex-row md:items-center md:justify-between">
+    <div className="mb-4 flex flex-col gap-3 rounded-lg border border-[#dfe3d8] bg-[#f8faf5] p-3 md:flex-row md:items-center md:justify-between">
       {children}
     </div>
   );

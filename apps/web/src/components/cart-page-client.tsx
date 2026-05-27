@@ -2,30 +2,23 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import { FontAwesomeIcon, formatCurrency } from "@99billiards/ui";
-import { type CartItem, cartTotal, readCart, writeCart } from "./cart-storage";
+import { cartTotal, readCart, subscribeCart, writeCart } from "./cart-storage";
 
 export function CartPageClient() {
-  const [items, setItems] = useState<CartItem[]>([]);
-
-  useEffect(() => {
-    setItems(readCart());
-  }, []);
-
+  const items = useSyncExternalStore(subscribeCart, readCart, () => []);
   const total = useMemo(() => cartTotal(items), [items]);
 
   function updateQuantity(productId: string, quantity: number) {
     const next = items.map((item) =>
       item.productId === productId ? { ...item, quantity: Math.min(99, Math.max(1, quantity)) } : item,
     );
-    setItems(next);
     writeCart(next);
   }
 
   function removeItem(productId: string) {
     const next = items.filter((item) => item.productId !== productId);
-    setItems(next);
     writeCart(next);
   }
 

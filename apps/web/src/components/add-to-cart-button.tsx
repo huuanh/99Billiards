@@ -15,7 +15,6 @@ export function AddToCartButton({
     price: number;
   };
 }) {
-  const [added, setAdded] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [cartQuantity, setCartQuantity] = useState(0);
@@ -55,7 +54,6 @@ export function AddToCartButton({
         type="button"
         onClick={() => {
           const nextCart = addCartItem({ ...product, quantity });
-          setAdded(true);
           setCartQuantity(nextCart.reduce((total, item) => total + item.quantity, 0) || readCart().reduce((total, item) => total + item.quantity, 0));
           setModalOpen(true);
         }}
