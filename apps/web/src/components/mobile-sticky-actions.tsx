@@ -7,7 +7,7 @@ export function MobileStickyActions({ branch }: { branch?: Branch | null }) {
   const mapUrl = branch?.mapUrl || "#branches";
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 gap-2 border-t border-white/10 bg-[#050705]/92 p-3 backdrop-blur-xl md:hidden">
+    <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 gap-2 border-t border-white/10 bg-[#050705]/92 px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl md:hidden">
       <a
         href={`tel:${phone.replaceAll(" ", "")}`}
         className="focus-ring min-h-12 rounded-2xl bg-white px-3 py-3 text-center text-xs font-black uppercase tracking-[0.12em] text-black"
@@ -25,7 +25,7 @@ export function MobileStickyActions({ branch }: { branch?: Branch | null }) {
       <button
         type="button"
         onClick={() => window.dispatchEvent(new Event("open-booking-modal"))}
-        className="focus-ring min-h-12 rounded-2xl bg-[#d6ff3f] px-3 py-3 text-center text-xs font-black uppercase tracking-[0.12em] text-black"
+        className="focus-ring min-h-12 rounded-2xl bg-[#2EB958] px-3 py-3 text-center text-xs font-black uppercase tracking-[0.12em] text-black"
       >
         Đặt bàn
       </button>

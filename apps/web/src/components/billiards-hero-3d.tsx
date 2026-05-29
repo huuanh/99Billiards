@@ -2,8 +2,8 @@
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
-import { useMemo, useRef, useState } from "react";
-import { CanvasTexture, SRGBColorSpace } from "three";
+import { useMemo, useRef } from "react";
+import { CanvasTexture, SRGBColorSpace, Vector3 } from "three";
 import type { Group, Texture } from "three";
 
 type VectorTuple = [number, number, number];
@@ -15,6 +15,58 @@ type BilliardBall = {
   color: string;
   striped: boolean;
 };
+
+type PhaseName = "aim" | "windup" | "strike" | "travel" | "broken" | "reset" | "pause";
+
+interface PhaseInfo {
+  phase: PhaseName;
+  phaseT: number;
+  broken: boolean;
+}
+
+const PHASES: Array<{ name: PhaseName; duration: number }> = [
+  { name: "aim", duration: 2.4 },
+  { name: "windup", duration: 0.7 },
+  { name: "strike", duration: 0.12 },
+  { name: "travel", duration: 0.2 },
+  { name: "broken", duration: 2.6 },
+  { name: "reset", duration: 0.9 },
+  { name: "pause", duration: 0.5 },
+];
+const LOOP_DURATION = PHASES.reduce((sum, p) => sum + p.duration, 0);
+
+const CLUSTER_BASE_Y = -0.45;
+const CUE_BALL_REST: VectorTuple = [0, 2.45, 0];
+const CUE_BALL_IMPACT: VectorTuple = [0, 1.7, 0.05];
+const CUE_BALL_DEFLECT: VectorTuple = [-0.9, 2.05, 0.35];
+const CUE_TIP_OFFSET_AIM = 0.5;
+const CUE_TIP_OFFSET_WINDUP = 1.4;
+const CUE_TIP_OFFSET_STRIKE = 0.02;
+const CUE_LENGTH = 3.6;
+
+function computePhase(time: number): PhaseInfo {
+  const t = time % LOOP_DURATION;
+  let acc = 0;
+  for (const segment of PHASES) {
+    if (t < acc + segment.duration) {
+      return {
+        phase: segment.name,
+        phaseT: (t - acc) / segment.duration,
+        broken: segment.name === "broken" || segment.name === "reset",
+      };
+    }
+    acc += segment.duration;
+  }
+  return { phase: "aim", phaseT: 0, broken: false };
+}
+
+function easeOutCubic(x: number) {
+  return 1 - Math.pow(1 - x, 3);
+}
+
+function easeInQuart(x: number) {
+  return x * x * x * x;
+}
 
 const ballStyles: Record<BallNumber, { color: string; striped: boolean }> = {
   1: { color: "#f2c21a", striped: false },
@@ -120,7 +172,210 @@ function makeBallTexture(number: number, color: string, striped: boolean): Textu
   return texture;
 }
 
-function BallActor({ ball, exploded }: { ball: BilliardBall; exploded: boolean }) {
+function makeCueBallTexture(): Texture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1024;
+  canvas.height = 512;
+  const context = canvas.getContext("2d");
+  if (!context) return new CanvasTexture(canvas);
+
+  context.fillStyle = "#f7f1de";
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  context.fillStyle = "#c8202a";
+  context.beginPath();
+  context.arc(canvas.width / 2, canvas.height / 2, 22, 0, Math.PI * 2);
+  context.fill();
+
+  const shine = context.createRadialGradient(260, 110, 0, 260, 110, 260);
+  shine.addColorStop(0, "rgba(255,255,255,0.55)");
+  shine.addColorStop(0.22, "rgba(255,255,255,0.18)");
+  shine.addColorStop(1, "rgba(255,255,255,0)");
+  context.fillStyle = shine;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function CueBall() {
+  const groupRef = useRef<Group>(null);
+  const texture = useMemo(() => makeCueBallTexture(), []);
+  const positionRef = useRef(new Vector3(...CUE_BALL_REST));
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    const { phase, phaseT } = computePhase(clock.getElapsedTime());
+
+    const targetPosition = positionRef.current;
+
+    if (phase === "aim" || phase === "windup" || phase === "strike" || phase === "pause") {
+      targetPosition.set(...CUE_BALL_REST);
+    } else if (phase === "travel") {
+      const t = easeInQuart(phaseT);
+      targetPosition.set(
+        CUE_BALL_REST[0] + (CUE_BALL_IMPACT[0] - CUE_BALL_REST[0]) * t,
+        CUE_BALL_REST[1] + (CUE_BALL_IMPACT[1] - CUE_BALL_REST[1]) * t,
+        CUE_BALL_REST[2] + (CUE_BALL_IMPACT[2] - CUE_BALL_REST[2]) * t,
+      );
+    } else if (phase === "broken") {
+      const t = easeOutCubic(Math.min(phaseT * 1.2, 1));
+      targetPosition.set(
+        CUE_BALL_IMPACT[0] + (CUE_BALL_DEFLECT[0] - CUE_BALL_IMPACT[0]) * t,
+        CUE_BALL_IMPACT[1] + (CUE_BALL_DEFLECT[1] - CUE_BALL_IMPACT[1]) * t,
+        CUE_BALL_IMPACT[2] + (CUE_BALL_DEFLECT[2] - CUE_BALL_IMPACT[2]) * t,
+      );
+    } else if (phase === "reset") {
+      const t = easeOutCubic(phaseT);
+      targetPosition.set(
+        CUE_BALL_DEFLECT[0] + (CUE_BALL_REST[0] - CUE_BALL_DEFLECT[0]) * t,
+        CUE_BALL_DEFLECT[1] + (CUE_BALL_REST[1] - CUE_BALL_DEFLECT[1]) * t,
+        CUE_BALL_DEFLECT[2] + (CUE_BALL_REST[2] - CUE_BALL_DEFLECT[2]) * t,
+      );
+    }
+
+    groupRef.current.position.lerp(targetPosition, 0.35);
+    if (phase === "travel" || phase === "broken") {
+      groupRef.current.rotation.x += 0.18;
+      groupRef.current.rotation.y += 0.06;
+    } else {
+      groupRef.current.rotation.x += 0.01;
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={CUE_BALL_REST}>
+      <mesh rotation={[0, -Math.PI / 2, 0]} castShadow receiveShadow>
+        <sphereGeometry args={[0.44, 72, 72]} />
+        <meshPhysicalMaterial
+          map={texture}
+          roughness={0.18}
+          metalness={0}
+          clearcoat={1}
+          clearcoatRoughness={0.04}
+          ior={1.42}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+function CueStick() {
+  const groupRef = useRef<Group>(null);
+
+  const tipLen = 0.05;
+  const ferruleLen = 0.08;
+  const shaftLen = CUE_LENGTH * 0.6;
+  const wrapLen = 0.4;
+  const buttLen = CUE_LENGTH - tipLen - ferruleLen - shaftLen - wrapLen;
+
+  const tipCenterY = tipLen / 2;
+  const ferruleCenterY = tipLen + ferruleLen / 2;
+  const shaftBottom = tipLen + ferruleLen;
+  const shaftCenterY = shaftBottom + shaftLen / 2;
+  const wrapCenterY = shaftBottom + shaftLen + wrapLen / 2;
+  const buttCenterY = shaftBottom + shaftLen + wrapLen + buttLen / 2;
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return;
+    const time = clock.getElapsedTime();
+    const { phase, phaseT } = computePhase(time);
+
+    let tipOffset = CUE_TIP_OFFSET_AIM;
+    let visible = true;
+
+    if (phase === "aim") {
+      tipOffset = CUE_TIP_OFFSET_AIM + Math.sin(time * 3.5) * 0.04;
+    } else if (phase === "windup") {
+      const t = easeOutCubic(phaseT);
+      tipOffset = CUE_TIP_OFFSET_AIM + (CUE_TIP_OFFSET_WINDUP - CUE_TIP_OFFSET_AIM) * t;
+    } else if (phase === "strike") {
+      const t = easeInQuart(phaseT);
+      tipOffset = CUE_TIP_OFFSET_WINDUP + (CUE_TIP_OFFSET_STRIKE - CUE_TIP_OFFSET_WINDUP) * t;
+    } else if (phase === "travel") {
+      tipOffset = CUE_TIP_OFFSET_STRIKE - phaseT * 0.4;
+    } else if (phase === "broken") {
+      tipOffset = CUE_TIP_OFFSET_AIM + phaseT * 1.6;
+      visible = phaseT < 0.55;
+    } else if (phase === "reset") {
+      tipOffset = CUE_TIP_OFFSET_AIM + (1 - easeOutCubic(phaseT)) * 1.0;
+    } else {
+      tipOffset = CUE_TIP_OFFSET_AIM;
+    }
+
+    const tipY = CUE_BALL_REST[1] + tipOffset;
+    groupRef.current.position.set(CUE_BALL_REST[0], tipY, CUE_BALL_REST[2]);
+    groupRef.current.visible = visible;
+  });
+
+  return (
+    <group ref={groupRef}>
+      {/* tip (blue chalk) at local y=0 */}
+      <mesh position={[0, tipCenterY, 0]} castShadow>
+        <cylinderGeometry args={[0.038, 0.04, tipLen, 18]} />
+        <meshStandardMaterial color="#1e58a8" roughness={0.85} />
+      </mesh>
+      {/* ferrule (white band) */}
+      <mesh position={[0, ferruleCenterY, 0]} castShadow>
+        <cylinderGeometry args={[0.04, 0.04, ferruleLen, 18]} />
+        <meshStandardMaterial color="#f8f5ea" roughness={0.4} />
+      </mesh>
+      {/* shaft (light maple) */}
+      <mesh position={[0, shaftCenterY, 0]} castShadow>
+        <cylinderGeometry args={[0.04, 0.065, shaftLen, 24]} />
+        <meshStandardMaterial color="#e9d8a4" roughness={0.55} metalness={0.05} />
+      </mesh>
+      {/* wrap (grip) */}
+      <mesh position={[0, wrapCenterY, 0]} castShadow>
+        <cylinderGeometry args={[0.07, 0.07, wrapLen, 24]} />
+        <meshStandardMaterial color="#1c1410" roughness={0.95} />
+      </mesh>
+      {/* butt (dark wood) */}
+      <mesh position={[0, buttCenterY, 0]} castShadow>
+        <cylinderGeometry args={[0.065, 0.085, buttLen, 24]} />
+        <meshStandardMaterial color="#382214" roughness={0.65} metalness={0.1} />
+      </mesh>
+    </group>
+  );
+}
+
+function BallCluster() {
+  const groupRef = useRef<Group>(null);
+  const balls = useMemo(() => makeRackBalls(), []);
+
+  useFrame(({ clock, pointer, size }) => {
+    if (!groupRef.current) return;
+    const elapsed = clock.getElapsedTime();
+    const { broken } = computePhase(elapsed);
+    const isMobile = size.width < 768;
+
+    groupRef.current.rotation.y = Math.sin(elapsed * 0.2) * 0.08 + pointer.x * 0.12;
+    groupRef.current.rotation.x = -0.1 + pointer.y * 0.08;
+    // Mobile: xoay cả cluster -90° quanh trục Z để cú bắn diễn ra ngang
+    // (cue ball + cue stick ở bên phải, cụm bi ở bên trái), thay vì dọc.
+    const targetRotZ = isMobile ? -Math.PI / 2 : 0;
+    groupRef.current.rotation.z += (targetRotZ - groupRef.current.rotation.z) * 0.15;
+    const targetX = isMobile ? 0 : -0.46;
+    groupRef.current.position.x += (targetX - groupRef.current.position.x) * 0.08;
+    groupRef.current.position.y = CLUSTER_BASE_Y + Math.sin(elapsed * 0.45) * 0.08;
+    const targetScale = broken ? 0.78 : 0.82;
+    groupRef.current.scale.lerp(new Vector3(targetScale, targetScale, targetScale), 0.06);
+  });
+
+  return (
+    <group ref={groupRef} position={[0, CLUSTER_BASE_Y, 0]} rotation={[0, -0.12, 0.02]} scale={0.9}>
+      {balls.map((ball) => (
+        <BallActorWithPhase key={ball.number} ball={ball} />
+      ))}
+      <CueBall />
+      <CueStick />
+    </group>
+  );
+}
+
+function BallActorWithPhase({ ball }: { ball: BilliardBall }) {
   const groupRef = useRef<Group>(null);
   const texture = useMemo(
     () => makeBallTexture(ball.number, ball.color, ball.striped),
@@ -129,10 +384,21 @@ function BallActor({ ball, exploded }: { ball: BilliardBall; exploded: boolean }
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return;
-    const target = exploded ? ball.break : ball.rack;
-    groupRef.current.position.lerp({ x: target[0], y: target[1], z: target[2] }, exploded ? 0.07 : 0.09);
-    groupRef.current.rotation.x += (exploded ? 0.045 : 0.01) + ball.number * 0.0008;
-    groupRef.current.rotation.y += exploded ? 0.035 : 0.008;
+    const { broken, phase, phaseT } = computePhase(clock.getElapsedTime());
+
+    let target: VectorTuple;
+    let lerpAmount: number;
+    if (broken) {
+      target = ball.break;
+      lerpAmount = phase === "broken" && phaseT < 0.2 ? 0.18 : 0.07;
+    } else {
+      target = ball.rack;
+      lerpAmount = 0.12;
+    }
+
+    groupRef.current.position.lerp(new Vector3(target[0], target[1], target[2]), lerpAmount);
+    groupRef.current.rotation.x += (broken ? 0.045 : 0.01) + ball.number * 0.0008;
+    groupRef.current.rotation.y += broken ? 0.035 : 0.008;
     groupRef.current.position.y += Math.sin(clock.getElapsedTime() * 1.2 + ball.number) * 0.0015;
   });
 
@@ -153,41 +419,12 @@ function BallActor({ ball, exploded }: { ball: BilliardBall; exploded: boolean }
   );
 }
 
-function BallCluster({ exploded }: { exploded: boolean }) {
-  const groupRef = useRef<Group>(null);
-  const balls = useMemo(() => makeRackBalls(), []);
-
-  useFrame(({ clock, pointer, size }) => {
-    if (!groupRef.current) return;
-    const elapsed = clock.getElapsedTime();
-    groupRef.current.rotation.y = Math.sin(elapsed * 0.2) * 0.08 + pointer.x * 0.12;
-    groupRef.current.rotation.x = -0.1 + pointer.y * 0.08;
-    const targetX = size.width < 768 ? 0 : -0.46;
-    groupRef.current.position.x += (targetX - groupRef.current.position.x) * 0.08;
-    groupRef.current.position.y = 0.1 + Math.sin(elapsed * 0.45) * 0.08;
-    const targetScale = exploded ? 0.78 : 0.82;
-    groupRef.current.scale.lerp({ x: targetScale, y: targetScale, z: targetScale }, 0.06);
-  });
-
-  return (
-    <group ref={groupRef} position={[0, 0.1, 0]} rotation={[0, -0.12, 0.02]} scale={0.9}>
-      {balls.map((ball) => (
-        <BallActor key={ball.number} ball={ball} exploded={exploded} />
-      ))}
-    </group>
-  );
-}
-
 export function BilliardsHero3D() {
-  const [exploded, setExploded] = useState(false);
-
   return (
     <div
       aria-hidden="true"
       data-testid="billiards-hero-3d"
-      onPointerEnter={() => setExploded(true)}
-      onPointerLeave={() => setExploded(false)}
-      className="pointer-events-auto absolute inset-x-0 top-16 z-[1] h-[42vh] min-h-[300px] opacity-75 md:inset-y-0 md:left-auto md:right-0 md:h-auto md:w-[54%] md:min-h-0 md:opacity-90 xl:right-[2%] xl:w-[48%]"
+      className="pointer-events-none absolute inset-x-0 top-0 z-[1] hidden h-[44vh] min-h-[300px] opacity-80 md:block md:inset-y-0 md:left-auto md:right-0 md:top-0 md:h-auto md:w-[54%] md:min-h-0 md:opacity-95 xl:right-[2%] xl:w-[48%]"
     >
       <Canvas
         shadows
@@ -198,13 +435,14 @@ export function BilliardsHero3D() {
           powerPreference: "high-performance",
           preserveDrawingBuffer: true,
         }}
+        style={{ width: "100%", height: "100%", pointerEvents: "none" }}
       >
         <PerspectiveCamera makeDefault position={[0, 0.1, 7.9]} fov={42} />
         <ambientLight intensity={0.75} />
         <directionalLight position={[-4, 5, 5]} intensity={2.1} color="#fff8df" castShadow />
-        <pointLight position={[2.8, -1.6, 2.6]} intensity={1.6} color="#d6ff3f" />
+        <pointLight position={[2.8, -1.6, 2.6]} intensity={1.6} color="#2EB958" />
         <pointLight position={[-2.4, 2.4, 2.2]} intensity={1.2} color="#ffffff" />
-        <BallCluster exploded={exploded} />
+        <BallCluster />
       </Canvas>
     </div>
   );

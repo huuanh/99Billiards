@@ -58,7 +58,7 @@ export function MediaUploader() {
       </label>
       <button
         disabled={isUploading}
-        className="focus-ring min-h-11 rounded-2xl bg-[#d6ff3f] px-5 py-3 text-sm font-black uppercase tracking-[0.18em] text-black disabled:opacity-60"
+        className="focus-ring min-h-11 rounded-2xl bg-[#2EB958] px-5 py-3 text-sm font-black uppercase tracking-[0.18em] text-black disabled:opacity-60"
       >
         {isUploading ? "Đang upload..." : "Upload qua server"}
       </button>

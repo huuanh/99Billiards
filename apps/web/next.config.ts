@@ -6,6 +6,9 @@ loadRootEnv();
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@99billiards/db", "@99billiards/config", "@99billiards/ui"],
+  // Cho phép truy cập từ IP máy local (LAN) khi test trên mobile cùng wifi.
+  // HMR sẽ bị block nếu không khai báo origin của thiết bị truy cập.
+  allowedDevOrigins: ["192.168.1.42"],
   images: {
     remotePatterns: [
       {

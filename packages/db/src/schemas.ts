@@ -13,6 +13,18 @@ export const bookingSchema = z.object({
 
 export type BookingInput = z.infer<typeof bookingSchema>;
 
+export const franchiseLeadSchema = z.object({
+  customerName: z.string().min(2, "Vui lòng nhập họ tên").max(120),
+  phone: z
+    .string()
+    .min(8, "Số điện thoại chưa hợp lệ")
+    .max(20)
+    .regex(/^[0-9+\-\s]+$/, "Số điện thoại chỉ gồm số"),
+  area: z.string().max(120).optional().or(z.literal("")),
+  capital: z.string().max(120).optional().or(z.literal("")),
+  note: z.string().max(1000).optional().or(z.literal("")),
+}).strip();
+
 export const salesOrderSchema = z.object({
   customerName: z.string().min(2, "Vui lòng nhập họ tên"),
   phone: z.string().min(8, "Số điện thoại chưa hợp lệ"),

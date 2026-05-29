@@ -3,6 +3,7 @@
 import {
   BookingModel,
   BranchModel,
+  FranchiseLeadModel,
   MediaAssetModel,
   PostCategoryModel,
   PostModel,
@@ -929,6 +930,7 @@ export async function updateProductPageSettings(
       {
         heroEyebrow: value(formData, "heroEyebrow"),
         heroTitle: value(formData, "heroTitle"),
+        heroTitleAccent: value(formData, "heroTitleAccent"),
         heroSubtitle: value(formData, "heroSubtitle"),
         heroImage,
         primaryCtaLabel: value(formData, "primaryCtaLabel"),
@@ -1299,6 +1301,22 @@ export async function deleteBooking(formData: FormData) {
   revalidateAdminAndPublic("/bookings");
 }
 
+export async function updateFranchiseLeadStatus(formData: FormData) {
+  await requirePermission("franchise");
+  await requireDbConnection();
+  await FranchiseLeadModel.findByIdAndUpdate(value(formData, "id"), {
+    status: value(formData, "status"),
+  });
+  revalidateAdminAndPublic("/franchise-leads");
+}
+
+export async function deleteFranchiseLead(formData: FormData) {
+  await requirePermission("franchise");
+  await requireDbConnection();
+  await FranchiseLeadModel.findByIdAndDelete(value(formData, "id"));
+  revalidateAdminAndPublic("/franchise-leads");
+}
+
 export async function updateSalesOrderStatus(formData: FormData) {
   await requirePermission("sales");
   await requireDbConnection();
@@ -1342,6 +1360,14 @@ export async function updateSiteSettings(
         $set: {
           siteName: value(formData, "siteName"),
           heroImage,
+          heroEyebrow: value(formData, "heroEyebrow"),
+          heroTitle: value(formData, "heroTitle"),
+          heroTitleAccent: value(formData, "heroTitleAccent"),
+          heroSubtitle: value(formData, "heroSubtitle"),
+          primaryCtaLabel: value(formData, "primaryCtaLabel"),
+          primaryCtaHref: value(formData, "primaryCtaHref"),
+          secondaryCtaLabel: value(formData, "secondaryCtaLabel"),
+          secondaryCtaHref: value(formData, "secondaryCtaHref"),
           gaId: value(formData, "gaId"),
           metaPixelId: value(formData, "metaPixelId"),
           tiktokPixelId: value(formData, "tiktokPixelId"),
@@ -1358,6 +1384,7 @@ export async function updateSiteSettings(
       [heroImage],
     );
     revalidateAdminAndPublic("/settings");
+    revalidateAdminAndPublic("/");
     return success("Đã lưu settings.");
   } catch (error) {
     await cleanupUploadedOnFailure(uploadedUrls);

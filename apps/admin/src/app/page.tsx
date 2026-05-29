@@ -56,7 +56,7 @@ export default async function AdminHome() {
         <>
           <Link
             href="/bookings?status=new"
-            className="focus-ring min-h-9 rounded-md bg-[#d6ff3f] px-3 py-2 text-sm font-black text-black"
+            className="focus-ring min-h-9 rounded-md bg-[#2EB958] px-3 py-2 text-sm font-black text-black"
           >
             Xử lý booking
           </Link>

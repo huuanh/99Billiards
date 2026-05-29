@@ -51,6 +51,8 @@ const branchSchema = new Schema(
     hours: String,
     status: String,
     tables: Number,
+    lat: Number,
+    lng: Number,
     mapUrl: String,
     mapEmbedUrl: String,
     image: String,
@@ -218,6 +220,19 @@ const bookingSchema = new Schema(
 bookingSchema.index({ status: 1, createdAt: -1 });
 bookingSchema.index({ branchId: 1, bookingDate: 1, bookingTime: 1 });
 
+const franchiseLeadSchema = new Schema(
+  {
+    customerName: String,
+    phone: String,
+    area: String,
+    capital: String,
+    note: String,
+    status: { type: String, default: "new" },
+  },
+  { timestamps: true },
+);
+franchiseLeadSchema.index({ status: 1, createdAt: -1 });
+
 const salesOrderSchema = new Schema(
   {
     orderCode: String,
@@ -256,6 +271,14 @@ const siteSettingSchema = new Schema(
   {
     siteName: String,
     heroImage: String,
+    heroEyebrow: String,
+    heroTitle: String,
+    heroTitleAccent: String,
+    heroSubtitle: String,
+    primaryCtaLabel: String,
+    primaryCtaHref: String,
+    secondaryCtaLabel: String,
+    secondaryCtaHref: String,
     gaId: String,
     metaPixelId: String,
     tiktokPixelId: String,
@@ -280,6 +303,7 @@ const productPageSettingSchema = new Schema(
   {
     heroEyebrow: String,
     heroTitle: String,
+    heroTitleAccent: String,
     heroSubtitle: String,
     heroImage: String,
     primaryCtaLabel: String,
@@ -333,6 +357,8 @@ export const PostModel = mongoose.models.Post || mongoose.model("Post", postSche
 export const PostCategoryModel =
   mongoose.models.PostCategory || mongoose.model("PostCategory", postCategorySchema);
 export const BookingModel = mongoose.models.Booking || mongoose.model("Booking", bookingSchema);
+export const FranchiseLeadModel =
+  mongoose.models.FranchiseLead || mongoose.model("FranchiseLead", franchiseLeadSchema);
 export const SalesOrderModel =
   mongoose.models.SalesOrder || mongoose.model("SalesOrder", salesOrderSchema);
 export const SiteSettingModel =
@@ -497,6 +523,35 @@ export async function getBookings() {
 export async function getSalesOrders() {
   if (!(await connectDb())) return [];
   return plain(await SalesOrderModel.find().sort({ createdAt: -1 }).lean());
+}
+
+export async function getFranchiseLeads() {
+  if (!(await connectDb())) return [];
+  return plain(await FranchiseLeadModel.find().sort({ createdAt: -1 }).lean());
+}
+
+// Đếm số lead nhượng quyền chưa xử lý (status = "new" hoặc chưa set). Dùng cho badge sidebar admin.
+export async function getNewFranchiseLeadCount() {
+  if (!(await connectDb())) return 0;
+  return FranchiseLeadModel.countDocuments({
+    $or: [{ status: "new" }, { status: { $exists: false } }, { status: null }, { status: "" }],
+  });
+}
+
+// Đếm số booking chưa xử lý (status = "new" hoặc chưa set). Dùng cho badge sidebar admin.
+export async function getNewBookingCount() {
+  if (!(await connectDb())) return 0;
+  return BookingModel.countDocuments({
+    $or: [{ status: "new" }, { status: { $exists: false } }, { status: null }, { status: "" }],
+  });
+}
+
+// Đếm số đơn hàng chưa xử lý (status = "new" hoặc chưa set).
+export async function getNewSalesOrderCount() {
+  if (!(await connectDb())) return 0;
+  return SalesOrderModel.countDocuments({
+    $or: [{ status: "new" }, { status: { $exists: false } }, { status: null }, { status: "" }],
+  });
 }
 
 export async function getSiteSettings() {

@@ -46,7 +46,7 @@ export function FormModal({
         onClick={() => setOpen(true)}
         className={
           intent === "primary"
-            ? "focus-ring min-h-9 rounded-md bg-[#d6ff3f] px-3 py-2 text-sm font-black text-black transition hover:bg-[#c6f02f]"
+            ? "focus-ring min-h-9 rounded-md bg-[#2EB958] px-3 py-2 text-sm font-black text-black transition hover:bg-[#c6f02f]"
             : "focus-ring min-h-9 rounded-md border border-[#cfd5c8] bg-white px-3 py-2 text-sm font-bold text-[#111713] transition hover:border-[#9ea99a]"
         }
       >

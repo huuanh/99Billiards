@@ -38,13 +38,13 @@ html {
 }
 
 ::selection {
-  background: #d6ff3f;
+  background: #2EB958;
   color: #081008;
 }
 
 .felt-grid {
   background-image:
-    radial-gradient(circle at 20% 20%, rgba(214, 255, 63, 0.18), transparent 24rem),
+    radial-gradient(circle at 20% 20%, rgba(46, 185, 88, 0.18), transparent 24rem),
     radial-gradient(circle at 80% 0%, rgba(0, 215, 167, 0.18), transparent 26rem),
     linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
@@ -59,11 +59,14 @@ html {
 }
 
 .neon-text {
-  text-shadow: 0 0 18px rgba(214, 255, 63, 0.45);
+  text-shadow: 0 0 18px rgba(46, 185, 88, 0.45);
 }
 
 .marquee {
   animation: marquee 28s linear infinite;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .focus-ring {
@@ -71,7 +74,7 @@ html {
 }
 
 .focus-ring:focus-visible {
-  box-shadow: 0 0 0 3px #050705, 0 0 0 6px #d6ff3f;
+  box-shadow: 0 0 0 3px #050705, 0 0 0 6px #2EB958;
 }
 
 @keyframes marquee {
@@ -80,5 +83,64 @@ html {
   }
   to {
     transform: translateX(-50%);
+  }
+}
+
+@keyframes cta-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(46, 185, 88, 0.55);
+  }
+  50% {
+    transform: scale(1.045);
+    box-shadow: 0 0 0 14px rgba(46, 185, 88, 0);
+  }
+}
+
+.animate-cta-pulse {
+  animation: cta-pulse 1.6s ease-in-out infinite;
+}
+
+/* Shine sweep cho badge "Nổi bật" trên card sản phẩm. */
+@keyframes badge-shine {
+  0% {
+    transform: translateX(-130%) skewX(-12deg);
+  }
+  60%,
+  100% {
+    transform: translateX(220%) skewX(-12deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-cta-pulse {
+    animation: none;
+  }
+}
+
+@keyframes field-error-flash {
+  0%,
+  100% {
+    border-color: rgb(220, 38, 38);
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+    background-color: #fff1f1;
+  }
+  50% {
+    border-color: rgb(220, 38, 38);
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.18);
+    background-color: #ffe4e4;
+  }
+}
+
+.field-error {
+  border-color: rgb(220, 38, 38) !important;
+  background-color: #fff5f5 !important;
+  animation: field-error-flash 0.55s ease-in-out 0s 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field-error {
+    animation: none;
   }
 }

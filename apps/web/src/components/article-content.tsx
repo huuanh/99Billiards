@@ -35,7 +35,7 @@ function applyMarks(content: ReactNode, marks: TiptapMark[] | undefined, key: st
     if (mark.type === "strike") return <s key={`${key}-mark-${index}`}>{current}</s>;
     if (mark.type === "code") {
       return (
-        <code key={`${key}-mark-${index}`} className="rounded bg-white/10 px-1.5 py-0.5 text-sm text-[#d6ff3f]">
+        <code key={`${key}-mark-${index}`} className="rounded bg-white/10 px-1.5 py-0.5 text-sm text-[#2EB958]">
           {current}
         </code>
       );
@@ -46,7 +46,7 @@ function applyMarks(content: ReactNode, marks: TiptapMark[] | undefined, key: st
         <a
           key={`${key}-mark-${index}`}
           href={href}
-          className="font-bold text-[#d6ff3f] underline decoration-[#d6ff3f]/50 underline-offset-4"
+          className="font-bold text-[#2EB958] underline decoration-[#2EB958]/50 underline-offset-4"
           rel="noreferrer"
           target={href.startsWith("http") ? "_blank" : undefined}
         >
@@ -109,7 +109,7 @@ function renderNode(node: TiptapNode, key: string): ReactNode {
 
   if (node.type === "blockquote") {
     return (
-      <blockquote key={key} className="my-8 border-l-4 border-[#d6ff3f] bg-white/[0.06] px-5 py-4 text-xl font-bold leading-9 text-white">
+      <blockquote key={key} className="my-8 border-l-4 border-[#2EB958] bg-white/[0.06] px-5 py-4 text-xl font-bold leading-9 text-white">
         {renderChildren(node.content, key)}
       </blockquote>
     );

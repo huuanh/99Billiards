@@ -97,7 +97,7 @@ const richEditorStyles = `
   }
 
   .rich-editor-content .ProseMirror blockquote {
-    border-left: 4px solid #d6ff3f;
+    border-left: 4px solid #2EB958;
     background: #f0f4ea;
     margin: 1rem 0;
     padding: 0.85rem 1rem;

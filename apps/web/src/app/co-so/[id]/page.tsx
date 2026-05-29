@@ -51,16 +51,16 @@ export default async function BranchDetailPage({ params }: PageProps) {
         <Image src={branch.image} alt={branch.name} fill priority className="object-cover opacity-35" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-[#050705]/65 to-[#050705]" />
         <div className="relative mx-auto max-w-7xl">
-          <Link href="/#branches" className="text-sm font-black uppercase tracking-[0.2em] text-[#d6ff3f]">
+          <Link href="/#branches" className="text-sm font-black uppercase tracking-[0.2em] text-[#2EB958]">
             ← Hệ thống cơ sở
           </Link>
-          <p className="mt-12 text-xs font-black uppercase tracking-[0.35em] text-[#d6ff3f]">
+          <p className="mt-12 text-xs font-black uppercase tracking-[0.35em] text-[#2EB958]">
             {branch.code} · {branch.district}
           </p>
           <h1 className="mt-4 max-w-4xl text-5xl font-black md:text-8xl">{branch.name}</h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-white/72">{branch.description}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a href={`tel:${branch.phone.replaceAll(" ", "")}`} className="rounded-full bg-[#d6ff3f] px-6 py-4 text-sm font-black uppercase tracking-[0.18em] text-black">
+            <a href={`tel:${branch.phone.replaceAll(" ", "")}`} className="rounded-full bg-[#2EB958] px-6 py-4 text-sm font-black uppercase tracking-[0.18em] text-black">
               Gọi đặt bàn
             </a>
             <a href="#booking" className="rounded-full border border-white/20 px-6 py-4 text-sm font-black uppercase tracking-[0.18em] text-white">
@@ -75,14 +75,13 @@ export default async function BranchDetailPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-6 px-4 py-16 md:grid-cols-3 md:px-6">
+      <section className="mx-auto grid max-w-7xl gap-6 px-4 py-16 md:grid-cols-2 md:px-6">
         {[
           ["Địa chỉ", branch.address],
-          ["Giờ mở cửa", branch.hours],
           ["Hotline", branch.phone],
         ].map(([label, value]) => (
           <div key={label} className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-6">
-            <p className="text-xs font-black uppercase tracking-[0.25em] text-[#d6ff3f]">{label}</p>
+            <p className="text-xs font-black uppercase tracking-[0.25em] text-[#2EB958]">{label}</p>
             <p className="mt-3 text-xl font-black">{value}</p>
           </div>
         ))}

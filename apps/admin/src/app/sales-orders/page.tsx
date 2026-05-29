@@ -4,6 +4,7 @@ import type { SalesOrder } from "@99billiards/db/seed";
 import { FontAwesomeIcon, formatCurrency } from "@99billiards/ui";
 import { deleteSalesOrder, updateSalesOrderStatus } from "../actions";
 import { AdminShell, Panel, StatusPill, Toolbar } from "@/components/admin-shell";
+import { SALES_ORDER_WORKFLOW, StatusActions } from "@/components/status-actions";
 import { requirePermission } from "@/lib/auth";
 
 interface SalesOrderRow extends SalesOrder {
@@ -12,10 +13,10 @@ interface SalesOrderRow extends SalesOrder {
 
 const statuses = [
   { value: "all", label: "Tất cả" },
-  { value: "new", label: "Moi" },
-  { value: "confirmed", label: "Đã xác nhận" },
+  { value: "new", label: "Mới" },
+  { value: "contacted", label: "Đã liên hệ" },
   { value: "shipping", label: "Đang giao" },
-  { value: "completed", label: "Hoan tat" },
+  { value: "completed", label: "Hoàn tất" },
   { value: "cancelled", label: "Đã hủy" },
 ];
 
@@ -24,15 +25,16 @@ function getParam(value: string | string[] | undefined) {
 }
 
 function statusLabel(status?: string) {
-  if (status === "confirmed") return "Đã xác nhận";
+  // Backward-compat: order cũ có status "confirmed" hiển thị như "Đã liên hệ".
+  if (status === "contacted" || status === "confirmed") return "Đã liên hệ";
   if (status === "shipping") return "Đang giao";
-  if (status === "completed") return "Hoan tat";
+  if (status === "completed") return "Hoàn tất";
   if (status === "cancelled") return "Đã hủy";
-  return "Moi";
+  return "Mới";
 }
 
 function statusTone(status?: string) {
-  if (status === "confirmed" || status === "shipping") return "good" as const;
+  if (status === "contacted" || status === "confirmed" || status === "shipping") return "good" as const;
   if (status === "cancelled") return "danger" as const;
   if (status === "completed") return "neutral" as const;
   return "warning" as const;
@@ -166,37 +168,14 @@ export default async function SalesOrdersPage({
                       <StatusPill label={statusLabel(order.status)} tone={statusTone(order.status)} />
                     </td>
                     <td className="px-3 py-3">
-                      <div className="flex flex-col gap-2">
-                        <form action={updateSalesOrderStatus} className="flex gap-2">
-                          <input type="hidden" name="id" value={String(order._id)} />
-                          <select
-                            name="status"
-                            defaultValue={order.status || "new"}
-                            className="min-h-9 rounded-md border border-[#cfd5c8] bg-white px-2 py-1 text-sm"
-                          >
-                            <option value="new">Moi</option>
-                            <option value="confirmed">Đã xác nhận</option>
-                            <option value="shipping">Đang giao</option>
-                            <option value="completed">Hoan tat</option>
-                            <option value="cancelled">Đã hủy</option>
-                          </select>
-                          <button className="min-h-9 rounded-md bg-[#111713] px-3 py-1 text-sm font-bold text-white">
-                            <span className="inline-flex items-center gap-2">
-                              <FontAwesomeIcon icon="floppy-disk" className="h-3.5 w-3.5" />
-                              Lưu
-                            </span>
-                          </button>
-                        </form>
-                        <form action={deleteSalesOrder}>
-                          <input type="hidden" name="id" value={String(order._id)} />
-                          <button className="min-h-9 rounded-md border border-red-200 bg-red-50 px-3 py-1 text-sm font-bold text-red-700">
-                            <span className="inline-flex items-center gap-2">
-                              <FontAwesomeIcon icon="trash" className="h-3.5 w-3.5" />
-                              Xóa đơn
-                            </span>
-                          </button>
-                        </form>
-                      </div>
+                      <StatusActions
+                        id={String(order._id)}
+                        status={order.status || "new"}
+                        workflow={SALES_ORDER_WORKFLOW}
+                        updateAction={updateSalesOrderStatus}
+                        deleteAction={deleteSalesOrder}
+                        deleteConfirmMessage={`Bạn chắc chắn muốn xóa đơn hàng ${order.orderCode || ""}?`}
+                      />
                     </td>
                   </tr>
                 ))

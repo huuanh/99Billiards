@@ -8,6 +8,8 @@ export interface Branch {
   hours: string;
   status: "open" | "coming-soon" | "busy";
   tables?: number;
+  lat?: number;
+  lng?: number;
   mapUrl?: string;
   mapEmbedUrl?: string;
   image: string;
@@ -118,6 +120,14 @@ export interface PostCategory {
 export interface SiteSettings {
   siteName?: string;
   heroImage?: string;
+  heroEyebrow?: string;
+  heroTitle?: string;
+  heroTitleAccent?: string;
+  heroSubtitle?: string;
+  primaryCtaLabel?: string;
+  primaryCtaHref?: string;
+  secondaryCtaLabel?: string;
+  secondaryCtaHref?: string;
   gaId?: string;
   metaPixelId?: string;
   tiktokPixelId?: string;
@@ -127,6 +137,7 @@ export interface SiteSettings {
 
 export interface ProductPageSettings {
   heroTitle?: string;
+  heroTitleAccent?: string;
   heroSubtitle?: string;
   heroImage?: string;
   heroEyebrow?: string;

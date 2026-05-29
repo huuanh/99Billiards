@@ -42,10 +42,10 @@ export default async function PromotionDetailPage({ params }: PageProps) {
         <Image src={promotion.image} alt={promotion.title} fill priority className="object-cover opacity-35" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-[#050705]/75 to-[#050705]" />
         <div className="relative mx-auto max-w-4xl">
-          <Link href="/#promotions" className="text-sm font-black uppercase tracking-[0.2em] text-[#d6ff3f]">
+          <Link href="/#promotions" className="text-sm font-black uppercase tracking-[0.2em] text-[#2EB958]">
             ← Ưu đãi
           </Link>
-          <span className="mt-12 inline-flex rounded-full bg-[#d6ff3f] px-4 py-2 text-sm font-black uppercase tracking-[0.18em] text-black">
+          <span className="mt-12 inline-flex rounded-full bg-[#2EB958] px-4 py-2 text-sm font-black uppercase tracking-[0.18em] text-black">
             {promotion.badge}
           </span>
           <h1 className="mt-5 text-5xl font-black md:text-7xl">{promotion.title}</h1>

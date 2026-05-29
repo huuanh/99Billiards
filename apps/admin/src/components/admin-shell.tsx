@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { getNewBookingCount, getNewFranchiseLeadCount, getNewSalesOrderCount } from "@99billiards/db";
 import { FontAwesomeIcon } from "@99billiards/ui";
 import { logoutAdmin } from "@/app/login/actions";
 import { type AdminPermission, hasPermission, requireAdmin, roleLabels } from "@/lib/auth";
@@ -17,10 +18,26 @@ const navItems = [
   { label: "Hiển thị trang SP", href: "/product-display", section: "CMS sản phẩm", permission: "products" },
   { label: "Đặt bàn", href: "/bookings", section: "Vận hành", permission: "bookings" },
   { label: "Bán hàng", href: "/sales-orders", section: "Vận hành", permission: "sales" },
+  { label: "Nhượng quyền", href: "/franchise-leads", section: "Vận hành", permission: "franchise" },
   { label: "Media", href: "/media", section: "Tài sản", permission: "media" },
   { label: "Users", href: "/users", section: "Hệ thống", permission: "users" },
   { label: "Settings", href: "/settings", section: "Hệ thống", permission: "settings" },
 ] satisfies Array<{ label: string; href: string; section: string; permission: AdminPermission }>;
+
+// Badge "MỚI" vàng đứng cạnh label cho các nav có công việc chưa xử lý.
+// Render inline ngay sau text, ở cả sidebar desktop lẫn drawer mobile.
+function NavBadge({ count }: { count: number }) {
+  if (!count) return null;
+  const display = count > 99 ? "99+" : String(count);
+  return (
+    <span
+      aria-label={`${count} mới`}
+      className="ml-2 inline-flex min-w-[20px] items-center justify-center rounded-full bg-[#facc15] px-1.5 text-[10px] font-black leading-none text-black"
+    >
+      {display}
+    </span>
+  );
+}
 
 export async function AdminShell({
   title,
@@ -40,6 +57,23 @@ export async function AdminShell({
     groups[item.section].push(item);
     return groups;
   }, {});
+
+  // Đếm việc chưa xử lý song song. Nếu user không có quyền xem thì set 0 (không hiện badge).
+  const canSeeBookings = hasPermission(session, "bookings");
+  const canSeeSales = hasPermission(session, "sales");
+  const canSeeFranchise = hasPermission(session, "franchise");
+  const [newBookingCount, newSalesOrderCount, newFranchiseLeadCount] = await Promise.all([
+    canSeeBookings ? getNewBookingCount() : Promise.resolve(0),
+    canSeeSales ? getNewSalesOrderCount() : Promise.resolve(0),
+    canSeeFranchise ? getNewFranchiseLeadCount() : Promise.resolve(0),
+  ]);
+
+  function badgeFor(href: string) {
+    if (href === "/bookings") return newBookingCount;
+    if (href === "/sales-orders") return newSalesOrderCount;
+    if (href === "/franchise-leads") return newFranchiseLeadCount;
+    return 0;
+  }
 
   return (
     <main className="min-h-screen bg-[#f4f6f1] text-[#111713]">
@@ -76,7 +110,10 @@ export async function AdminShell({
                     href={item.href}
                     className="focus-ring flex min-h-10 items-center justify-between rounded-md px-3 py-2 text-sm font-bold text-white/75 transition hover:bg-white/10 hover:text-white"
                   >
-                    <span>{item.label}</span>
+                    <span className="inline-flex items-center">
+                      {item.label}
+                      <NavBadge count={badgeFor(item.href)} />
+                    </span>
                     <span className="text-white/25">&gt;</span>
                   </Link>
                 ))}
@@ -109,7 +146,10 @@ export async function AdminShell({
                             href={item.href}
                             className="focus-ring flex min-h-10 items-center justify-between rounded-md px-3 py-2 text-sm font-bold text-white/82 hover:bg-white/10"
                           >
-                            <span>{item.label}</span>
+                            <span className="relative inline-flex">
+                              {item.label}
+                              <NavBadge count={badgeFor(item.href)} />
+                            </span>
                             <span className="text-white/25">&gt;</span>
                           </Link>
                         ))}
@@ -121,7 +161,7 @@ export async function AdminShell({
             </details>
 
             <span className="text-sm font-black uppercase tracking-[0.08em]">
-              99 <span className="text-[#d6ff3f]">Admin</span>
+              99 <span className="text-[#2EB958]">Admin</span>
             </span>
 
             <details>
@@ -349,7 +389,7 @@ export function Select({
 
 export function SaveButton({ label = "Lưu" }: { label?: string }) {
   return (
-    <button className="focus-ring min-h-10 rounded-md bg-[#d6ff3f] px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-black transition hover:bg-[#c6f02f]">
+    <button className="focus-ring min-h-10 rounded-md bg-[#2EB958] px-4 py-2 text-sm font-black uppercase tracking-[0.14em] text-black transition hover:bg-[#c6f02f]">
       <span className="inline-flex items-center gap-2">
         <FontAwesomeIcon icon="floppy-disk" className="h-4 w-4" />
         {label}

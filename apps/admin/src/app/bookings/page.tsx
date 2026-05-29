@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getBookings, getBranches } from "@99billiards/db";
 import { deleteBooking, updateBookingStatus } from "../actions";
 import { AdminShell, Panel, StatusPill, Toolbar } from "@/components/admin-shell";
+import { BOOKING_WORKFLOW, StatusActions } from "@/components/status-actions";
 import { requirePermission } from "@/lib/auth";
 
 type BookingRow = {
@@ -26,20 +27,21 @@ type BranchRow = {
 const statuses = [
   { value: "all", label: "Tất cả" },
   { value: "new", label: "Mới" },
-  { value: "confirmed", label: "Đã xác nhận" },
+  { value: "contacted", label: "Đã liên hệ" },
   { value: "completed", label: "Hoàn tất" },
   { value: "cancelled", label: "Đã hủy" },
 ];
 
 function statusLabel(status?: string) {
-  if (status === "confirmed") return "Đã xác nhận";
+  // Backward-compat: booking cũ có status "confirmed" thì hiển thị như "Đã liên hệ".
+  if (status === "contacted" || status === "confirmed") return "Đã liên hệ";
   if (status === "cancelled") return "Đã hủy";
   if (status === "completed") return "Hoàn tất";
   return "Mới";
 }
 
 function statusTone(status?: string) {
-  if (status === "confirmed") return "good" as const;
+  if (status === "contacted" || status === "confirmed") return "good" as const;
   if (status === "cancelled") return "danger" as const;
   if (status === "completed") return "neutral" as const;
   return "warning" as const;
@@ -105,7 +107,7 @@ export default async function BookingsPage({
       actions={
         <Link
           href="/bookings?status=new"
-          className="focus-ring min-h-9 rounded-md bg-[#d6ff3f] px-3 py-2 text-sm font-black text-black"
+          className="focus-ring min-h-9 rounded-md bg-[#2EB958] px-3 py-2 text-sm font-black text-black"
         >
           Booking mới
         </Link>
@@ -188,30 +190,18 @@ export default async function BookingsPage({
                       <StatusPill label={statusLabel(booking.status)} tone={statusTone(booking.status)} />
                     </td>
                     <td className="px-3 py-3">
-                      <div className="flex flex-col gap-2">
-                        <form action={updateBookingStatus} className="flex gap-2">
-                          <input type="hidden" name="id" value={String(booking._id)} />
-                          <select
-                            name="status"
-                            defaultValue={booking.status || "new"}
-                            className="min-h-9 rounded-md border border-[#cfd5c8] bg-white px-2 py-1 text-sm"
-                          >
-                            <option value="new">Mới</option>
-                            <option value="confirmed">Đã xác nhận</option>
-                            <option value="cancelled">Đã hủy</option>
-                            <option value="completed">Hoàn tất</option>
-                          </select>
-                          <button className="min-h-9 rounded-md bg-[#111713] px-3 py-1 text-sm font-bold text-white">
-                            Lưu
-                          </button>
-                        </form>
-                        <form action={deleteBooking}>
-                          <input type="hidden" name="id" value={String(booking._id)} />
-                          <button className="min-h-9 rounded-md border border-red-200 bg-red-50 px-3 py-1 text-sm font-bold text-red-700">
-                            Xóa booking
-                          </button>
-                        </form>
-                      </div>
+                      <StatusActions
+                        id={String(booking._id)}
+                        status={booking.status || "new"}
+                        workflow={BOOKING_WORKFLOW}
+                        updateAction={updateBookingStatus}
+                        deleteAction={deleteBooking}
+                        deleteConfirmMessage={
+                          booking.customerName
+                            ? `Bạn chắc chắn muốn xóa booking của "${booking.customerName}"?`
+                            : "Bạn chắc chắn muốn xóa booking này?"
+                        }
+                      />
                     </td>
                   </tr>
                 ))

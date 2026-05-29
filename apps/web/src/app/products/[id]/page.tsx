@@ -10,12 +10,12 @@ import {
   getProducts,
 } from "@99billiards/db";
 import type { Product, ProductBrand, ProductCategory } from "@99billiards/db/seed";
-import { siteConfig } from "@99billiards/config";
 import { FontAwesomeIcon, formatCurrency } from "@99billiards/ui";
 import { ProductGallerySlider } from "@/components/product-gallery-slider";
+import { ProductDetailTabs } from "@/components/product-detail-tabs";
 import { AddToCartButton } from "@/components/add-to-cart-button";
-import { CartLink } from "@/components/cart-link";
 import { PublicFooter } from "@/components/public-footer";
+import { PublicHeader } from "@/components/public-header";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -52,34 +52,18 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     .slice(0, 4);
 
   return (
-    <main className="min-h-screen bg-[#f7f4ec] text-[#15120d]">
-      <header className="sticky top-0 z-40 border-b border-black/10 bg-[#f7f4ec]/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6">
-          <Link href="/" className="focus-ring flex items-center gap-3 rounded-full">
-            <Image src="/logo.jpg" alt="99 Billiards Club" width={44} height={44} className="h-11 w-11 rounded-full object-cover" />
-            <span className="hidden text-sm font-black uppercase tracking-[0.2em] md:block">99 Billiards</span>
-          </Link>
-          <nav className="hidden items-center gap-5 text-xs font-black uppercase tracking-[0.16em] text-black/58 lg:flex">
-            <Link href="/products" className="rounded-full text-[#00684a]">Sản phẩm</Link>
-            <Link href="/#branches" className="rounded-full hover:text-[#00684a]">Cơ sở</Link>
-            <Link href="/#promotions" className="rounded-full hover:text-[#00684a]">Ưu đãi</Link>
-            <CartLink />
-          </nav>
-          <a href={`tel:${siteConfig.hotline.replaceAll(" ", "")}`} className="focus-ring rounded-full bg-[#00684a] px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-white">
-            {siteConfig.hotline}
-          </a>
-        </div>
-      </header>
+    <main className="min-h-screen bg-[#f7f4ec] pb-24 text-[#15120d] md:pb-0">
+      <PublicHeader active="products" />
 
-      <section className="mx-auto max-w-7xl px-4 py-6 md:px-6">
+      <section className="mx-auto max-w-7xl px-4 pb-6 pt-36 md:px-6 md:pt-40">
         <nav className="flex flex-wrap gap-2 text-sm font-bold text-black/55">
-          <Link href="/" className="hover:text-[#00684a]">Trang chủ</Link>
+          <Link href="/" className="hover:text-[#2EB958]">Trang chủ</Link>
           <span>/</span>
-          <Link href="/products" className="hover:text-[#00684a]">Sản phẩm</Link>
+          <Link href="/products" className="hover:text-[#2EB958]">Sản phẩm</Link>
           {category ? (
             <>
               <span>/</span>
-              <Link href={`/products?category=${encodeURIComponent(product.categoryId || product.category)}`} className="hover:text-[#00684a]">
+              <Link href={`/products?category=${encodeURIComponent(product.categoryId || product.category)}`} className="hover:text-[#2EB958]">
                 {category}
               </Link>
             </>
@@ -87,17 +71,17 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <span>/</span>
           <span className="text-black">{product.name}</span>
         </nav>
-        <h1 className="mt-7 text-4xl font-black leading-tight md:text-6xl lg:text-7xl">{product.name}</h1>
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-10 px-4 pb-14 md:px-6 lg:grid-cols-[0.96fr_1.04fr]">
         <ProductGallerySlider images={gallery} productName={product.name} />
 
         <div>
-          <div className="flex flex-wrap items-end gap-4">
-            <p className="text-4xl font-black leading-tight text-[#0c3b2d] md:text-6xl">{formatCurrency(product.price)}</p>
+          <h1 className="text-2xl font-black leading-tight text-[#15120d] md:text-3xl lg:text-4xl">{product.name}</h1>
+          <div className="mt-4 flex flex-wrap items-end gap-4">
+            <p className="text-3xl font-black leading-tight text-[#2EB958] md:text-4xl">{formatCurrency(product.price)}</p>
             {product.compareAtPrice && product.compareAtPrice > product.price ? (
-              <p className="pb-2 text-lg font-bold text-black/38 line-through">{formatCurrency(product.compareAtPrice)}</p>
+              <p className="pb-1 text-base font-bold text-black/38 line-through">{formatCurrency(product.compareAtPrice)}</p>
             ) : null}
           </div>
           <div className="mt-5 grid gap-2 border-y border-black/10 py-4 text-sm font-bold text-black/62 sm:grid-cols-2">
@@ -106,10 +90,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </div>
 
           {product.specs?.length ? (
-            <ul className="mt-6 grid gap-3 border border-black/10 bg-white p-5 text-sm font-bold text-black/72">
+            <ul className="mt-6 grid gap-3 rounded-lg border border-black/10 bg-white p-5 text-sm font-bold text-black/72 shadow-sm">
               {product.specs.map((spec) => (
                 <li key={spec} className="flex gap-3">
-                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#00684a]" />
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2EB958]" />
                   <span>{spec}</span>
                 </li>
               ))}
@@ -127,7 +111,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             />
           </div>
 
-          <div className="mt-7 grid gap-3 border border-[#00684a]/20 bg-[#00684a] p-5 text-sm font-bold text-white md:grid-cols-2">
+          <div className="mt-7 grid gap-3 rounded-lg border border-[#2EB958]/20 bg-[#2EB958] p-5 text-sm font-bold text-white shadow-sm md:grid-cols-2">
             <p className="inline-flex items-center gap-2"><FontAwesomeIcon icon="truck-fast" className="h-4 w-4" />Vận chuyển hỏa tốc trong Hà Nội</p>
             <p className="inline-flex items-center gap-2"><FontAwesomeIcon icon="shield-halved" className="h-4 w-4" />Hỗ trợ bảo dưỡng vệ sinh miễn phí</p>
             <p className="inline-flex items-center gap-2"><FontAwesomeIcon icon="gift" className="h-4 w-4" />Quà tặng hấp dẫn cho đơn hàng</p>
@@ -137,15 +121,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       </section>
 
       <section className="border-y border-black/10 bg-white">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:px-6 lg:grid-cols-[1fr_0.42fr]">
-          <article>
-            <h2 className="text-3xl font-black">Mô tả sản phẩm</h2>
-            <ProductDetailContent product={product} />
-          </article>
-          <aside className="border border-black/10 bg-[#f7f4ec] p-5">
-            <h3 className="text-xl font-black">Chính sách bảo hành</h3>
-            <WarrantyPolicy content={product.warrantyPolicy} />
-          </aside>
+        <div className="mx-auto max-w-7xl px-4 py-12 md:px-6">
+          <ProductDetailTabs
+            description={<ProductDetailContent product={product} />}
+            warranty={<WarrantyPolicy content={product.warrantyPolicy} />}
+          />
         </div>
       </section>
 
@@ -154,16 +134,16 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <h2 className="text-3xl font-black">Sản phẩm liên quan</h2>
           <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {relatedProducts.map((item) => (
-              <Link key={item.id} href={`/products/${item.id}`} className="group overflow-hidden border border-black/10 bg-white shadow-sm">
-                <div className="relative aspect-[4/3] overflow-hidden">
+              <Link key={item.id} href={`/products/${item.id}`} className="group overflow-hidden rounded-lg border border-black/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+                <div className="relative aspect-square overflow-hidden">
                   <Image src={item.image} alt={item.name} fill className="object-cover transition group-hover:scale-105" />
                 </div>
                 <div className="p-4">
-                  <p className="text-xs font-black uppercase tracking-[0.14em] text-[#00684a]">
+                  <p className="text-xs font-black uppercase tracking-[0.14em] text-[#2EB958]">
                     {categoryNames.get(item.categoryId || "") || item.category}
                   </p>
-                  <h3 className="mt-2 min-h-12 font-black leading-tight">{item.name}</h3>
-                  <p className="mt-3 text-lg font-black text-[#0c3b2d]">{formatCurrency(item.price)}</p>
+                  <h3 className="mt-2 min-h-12 font-black leading-tight text-[#15120d]">{item.name}</h3>
+                  <p className="mt-3 text-lg font-black text-[#2EB958]">{formatCurrency(item.price)}</p>
                 </div>
               </Link>
             ))}
@@ -228,16 +208,19 @@ function WarrantyPolicy({ content }: { content?: string }) {
 
   if (!items.length) {
     return (
-      <p className="mt-4 text-sm font-bold leading-6 text-black/55">
+      <p className="mt-5 text-base leading-8 text-black/68">
         Chưa cập nhật chính sách bảo hành cho sản phẩm này.
       </p>
     );
   }
 
   return (
-    <ul className="mt-4 grid gap-3 text-sm font-bold leading-6 text-black/62">
+    <ul className="mt-5 grid gap-3 text-base leading-8 text-black/68">
       {items.map((item) => (
-        <li key={item}>{item}</li>
+        <li key={item} className="flex gap-3">
+          <span className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2EB958]" />
+          <span>{item}</span>
+        </li>
       ))}
     </ul>
   );
@@ -255,7 +238,7 @@ function applyMarks(content: ReactNode, marks: TiptapMark[] | undefined, key: st
     if (mark.type === "strike") return <s key={`${key}-mark-${index}`}>{current}</s>;
     if (mark.type === "code") {
       return (
-        <code key={`${key}-mark-${index}`} className="rounded bg-black/5 px-1.5 py-0.5 text-sm text-[#00684a]">
+        <code key={`${key}-mark-${index}`} className="rounded bg-black/5 px-1.5 py-0.5 text-sm text-[#2EB958]">
           {current}
         </code>
       );
@@ -263,7 +246,7 @@ function applyMarks(content: ReactNode, marks: TiptapMark[] | undefined, key: st
     if (mark.type === "link") {
       const href = typeof mark.attrs?.href === "string" ? mark.attrs.href : "#";
       return (
-        <a key={`${key}-mark-${index}`} href={href} className="font-bold text-[#00684a] underline underline-offset-4" rel="noreferrer" target={href.startsWith("http") ? "_blank" : undefined}>
+        <a key={`${key}-mark-${index}`} href={href} className="font-bold text-[#2EB958] underline underline-offset-4" rel="noreferrer" target={href.startsWith("http") ? "_blank" : undefined}>
           {current}
         </a>
       );
@@ -320,7 +303,7 @@ function renderNode(node: TiptapNode, key: string): ReactNode {
 
   if (node.type === "blockquote") {
     return (
-      <blockquote key={key} className="my-8 border-l-4 border-[#00684a] bg-[#f7f4ec] px-5 py-4 text-lg font-bold leading-8 text-black">
+      <blockquote key={key} className="my-8 rounded-r-lg border-l-4 border-[#2EB958] bg-[#f7f4ec] px-5 py-4 text-lg font-bold leading-8 text-black">
         {renderChildren(node.content, key)}
       </blockquote>
     );
@@ -340,7 +323,7 @@ function renderNode(node: TiptapNode, key: string): ReactNode {
     if (!src) return null;
 
     return (
-      <figure key={key} className="my-8 overflow-hidden border border-black/10 bg-[#f7f4ec]">
+      <figure key={key} className="my-8 overflow-hidden rounded-lg border border-black/10 bg-[#f7f4ec] shadow-sm">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={src} alt={alt} className="w-full object-cover" />
         {caption ? <figcaption className="border-t border-black/10 px-4 py-3 text-sm font-bold text-black/55">{caption}</figcaption> : null}

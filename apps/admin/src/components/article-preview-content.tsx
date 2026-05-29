@@ -107,7 +107,7 @@ function renderNode(node: TiptapNode, key: string): ReactNode {
 
   if (node.type === "blockquote") {
     return (
-      <blockquote key={key} className="my-8 border-l-4 border-[#d6ff3f] bg-[#f8faf5] px-5 py-4 text-xl font-bold leading-9 text-[#111713]">
+      <blockquote key={key} className="my-8 border-l-4 border-[#2EB958] bg-[#f8faf5] px-5 py-4 text-xl font-bold leading-9 text-[#111713]">
         {renderChildren(node.content, key)}
       </blockquote>
     );

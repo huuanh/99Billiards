@@ -9,10 +9,10 @@ import {
   getProducts,
 } from "@99billiards/db";
 import type { Product, ProductBrand, ProductCategory, ProductPageSettings, ProductSubcategory } from "@99billiards/db/seed";
-import { siteConfig } from "@99billiards/config";
 import { FontAwesomeIcon, formatCurrency } from "@99billiards/ui";
-import { CartLink } from "@/components/cart-link";
+import { HeroTitle } from "@/components/hero-title";
 import { PublicFooter } from "@/components/public-footer";
+import { PublicHeader } from "@/components/public-header";
 
 const priceRanges = [
   { label: "Dưới 2 triệu", min: 0, max: 2_000_000 },
@@ -73,49 +73,68 @@ export default async function ProductsPage({
     return categoryMatch && subcategoryMatch && brandMatch && priceMatch && queryMatch;
   });
 
-  const heroImage =
-    settings.heroImage ||
-    "https://images.unsplash.com/photo-1541305678321-60de370004b7?auto=format&fit=crop&w=2200&q=80";
+  const heroImage = settings.heroImage || "/cover.png";
+
+  const activeCategoryRecord = categories.find((category) => category.id === selectedCategory);
+  const activeSubcategoryRecord = subcategories.find((subcategory) => subcategory.id === selectedSubcategory);
+  const activeBrandRecord = brands.find((brand) => brand.id === selectedBrand);
+  const activePriceRange = priceRanges.find((range) => slugify(range.label) === selectedPrice);
+
+  let pageTitle = "Tất cả sản phẩm";
+  if (query) {
+    pageTitle = `Kết quả tìm "${query}"`;
+  } else if (activeSubcategoryRecord) {
+    pageTitle = activeSubcategoryRecord.name;
+  } else if (activeCategoryRecord) {
+    pageTitle = activeCategoryRecord.name;
+  } else if (activeBrandRecord) {
+    pageTitle = activeBrandRecord.name;
+  } else if (activePriceRange) {
+    pageTitle = activePriceRange.label;
+  }
+
+  const eyebrowParts: string[] = ["Catalog"];
+  if (activeCategoryRecord && activeSubcategoryRecord) {
+    eyebrowParts.push(activeCategoryRecord.name);
+  }
+  if (activeBrandRecord && (activeCategoryRecord || activeSubcategoryRecord)) {
+    eyebrowParts.push(activeBrandRecord.name);
+  }
+  const eyebrowLabel = eyebrowParts.join(" / ");
 
   return (
     <main className="min-h-screen bg-[#f7f4ec] text-[#15120d]">
-      <header className="sticky top-0 z-40 border-b border-black/10 bg-[#f7f4ec]/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6">
-          <Link href="/" className="focus-ring flex items-center gap-3 rounded-full">
-            <Image src="/logo.jpg" alt="99 Billiards Club" width={44} height={44} className="h-11 w-11 rounded-full object-cover" />
-            <span className="hidden text-sm font-black uppercase tracking-[0.2em] md:block">99 Billiards</span>
-          </Link>
-          <nav className="hidden items-center gap-5 text-xs font-black uppercase tracking-[0.16em] text-black/58 lg:flex">
-            <Link href="/products" className="rounded-full text-[#00684a]">Sản phẩm</Link>
-            <Link href="/#branches" className="rounded-full hover:text-[#00684a]">Cơ sở</Link>
-            <Link href="/#promotions" className="rounded-full hover:text-[#00684a]">Ưu đãi</Link>
-            <Link href="/#news" className="rounded-full hover:text-[#00684a]">Tin tức</Link>
-            <CartLink />
-          </nav>
-          <a href={`tel:${siteConfig.hotline.replaceAll(" ", "")}`} className="focus-ring rounded-full bg-[#00684a] px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-white">
-            {siteConfig.hotline}
-          </a>
-        </div>
-      </header>
+      <PublicHeader active="products" />
 
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
           <Image src={heroImage} alt="" fill priority className="object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/86 via-black/58 to-black/14" />
         </div>
-        <div className="relative mx-auto grid min-h-[76vh] max-w-7xl items-end gap-8 px-4 pb-12 pt-28 md:px-6 lg:grid-cols-[1fr_0.42fr]">
+        <div className="relative mx-auto flex min-h-[76vh] max-w-7xl items-end px-4 pb-12 pt-28 md:px-6">
           <div className="max-w-4xl text-white">
-            <p className="text-xs font-black uppercase tracking-[0.34em] text-[#d6ff3f]">
+            <p className="text-xs font-black uppercase tracking-[0.34em] text-[#2EB958]">
               {settings.heroEyebrow || "99 Billiards Store"}
             </p>
-            <h1 className="mt-5 text-5xl font-black leading-[0.95] md:text-7xl lg:text-8xl">
-              {settings.heroTitle || "Sản phẩm cho mọi ván chơi"}
+            <h1 className="mt-5 text-5xl font-black uppercase leading-[1.15] md:text-7xl lg:text-8xl">
+              {settings.heroTitle ? (
+                <HeroTitle title={settings.heroTitle} accent={settings.heroTitleAccent} />
+              ) : (
+                <>
+                  Đẳng cấp
+                  <br />
+                  trong từng
+                  <br />
+                  <span className="text-[#2EB958]">cú đánh</span>
+                </>
+              )}
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-white/75">
-              {settings.heroSubtitle || "Catalog sản phẩm, dịch vụ và phụ kiện billiards."}
+              {settings.heroSubtitle ||
+                "Khám phá bộ sưu tập gậy billiards chính hãng từ các thương hiệu hàng đầu thế giới."}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href={settings.primaryCtaHref || "#catalog"} className="focus-ring rounded-full bg-[#d6ff3f] px-7 py-4 text-center text-sm font-black uppercase tracking-[0.16em] text-black">
+              <Link href={settings.primaryCtaHref || "#catalog"} className="focus-ring rounded-full bg-[#2EB958] px-7 py-4 text-center text-sm font-black uppercase tracking-[0.16em] text-black">
                 {settings.primaryCtaLabel || "Xem sản phẩm"}
               </Link>
               <Link href={settings.secondaryCtaHref || "#contact"} className="focus-ring rounded-full border border-white/25 px-7 py-4 text-center text-sm font-black uppercase tracking-[0.16em] text-white">
@@ -123,103 +142,141 @@ export default async function ProductsPage({
               </Link>
             </div>
           </div>
-          <div className="rounded-lg border border-white/15 bg-black/40 p-5 text-white backdrop-blur-md">
-            <p className="text-xs font-black uppercase tracking-[0.25em] text-[#d6ff3f]">
-              {settings.promoTitle || "Gợi ý nhanh"}
-            </p>
-            <p className="mt-3 text-sm leading-6 text-white/72">
-              {settings.promoText || "Lọc theo danh mục, nhãn hàng hoặc khoảng giá để tìm đúng sản phẩm."}
-            </p>
-            <div className="mt-5 grid grid-cols-3 gap-3 text-center">
-              <Metric value={String(productsRaw.length)} label="Sản phẩm" />
-              <Metric value={String(categories.length)} label="Danh mục" />
-              <Metric value={String(brands.length)} label="Nhãn hàng" />
-            </div>
-          </div>
         </div>
       </section>
 
-      <section className="border-y border-black/10 bg-[#15120d] px-4 py-5 text-white md:px-6">
-        <div className="mx-auto grid max-w-7xl gap-3 text-sm font-bold md:grid-cols-4">
-          <span>Vận chuyển hỏa tốc khu vực Hà Nội</span>
-          <span>Hỗ trợ bảo dưỡng cơ miễn phí</span>
-          <span>Nhiều phương thức thanh toán</span>
-          <span>Tư vấn theo ngân sách và trình độ</span>
+      <section className="border-b border-black/10 bg-[#15120d] px-4 py-3 text-white md:px-6 md:py-5">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-4 gap-y-2.5 md:grid-cols-4 md:gap-3">
+          {[
+            { icon: "truck-fast", label: "Hỏa tốc Hà Nội" },
+            { icon: "shield-halved", label: "Bảo dưỡng cơ miễn phí" },
+            { icon: "gift", label: "Quà tặng đơn hàng" },
+            { icon: "phone", label: "Tư vấn theo trình độ" },
+          ].map(({ icon, label }) => (
+            <span
+              key={label}
+              className="flex items-center gap-2 text-xs font-semibold text-white/85 md:text-sm md:font-bold"
+            >
+              <FontAwesomeIcon
+                icon={icon as "truck-fast" | "shield-halved" | "gift" | "phone"}
+                className="h-3.5 w-3.5 shrink-0 text-[#2EB958] md:h-4 md:w-4"
+              />
+              {label}
+            </span>
+          ))}
         </div>
       </section>
 
-      <section id="catalog" className="mx-auto grid max-w-7xl gap-8 px-4 py-14 md:px-6 lg:grid-cols-[280px_1fr]">
-        <aside className="h-fit rounded-lg border border-black/10 bg-white p-4 shadow-sm lg:sticky lg:top-24">
-          <h2 className="text-lg font-black">Danh mục sản phẩm</h2>
-          <div className="mt-4 grid gap-2">
-            <FilterLink label="Tất cả sản phẩm" param="category" value="" active={!selectedCategory} />
-            {categories.map((category) => (
-              <FilterLink
-                key={category.id}
-                label={category.name}
-                param="category"
-                value={category.id}
-                active={selectedCategory === category.id}
-              />
-            ))}
-          </div>
+      <nav
+        aria-label="Danh mục sản phẩm"
+        // Sticky bar — ở yên tại vị trí natural cho tới khi scroll past 104px thì
+        // dính dưới header. Bỏ backdrop-blur vì backdrop-filter trên element
+        // position:sticky sẽ phá sticky behavior trên iOS Safari.
+        // z-index nằm DƯỚI header (header z-[1100]) nhưng TRÊN content thường.
+        style={{ position: "sticky", top: 104 }}
+        className="z-[1090] border-b border-black/10 bg-[#f7f4ec] shadow-sm"
+      >
+        <div
+          // touchAction: pan-x → chỉ cho phép vuốt ngang (scroll tabs).
+          // Vuốt dọc trong nav bị block, không trigger page scroll dọc gây glitch.
+          style={{ touchAction: "pan-x" }}
+          className="mx-auto flex max-w-7xl items-center gap-2 overflow-x-auto overscroll-x-contain px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:justify-between md:overflow-x-visible md:px-6"
+        >
+          <Link
+            href="/products"
+            className={`focus-ring shrink-0 rounded-full px-4 py-2 text-sm font-black uppercase tracking-[0.12em] whitespace-nowrap transition ${
+              selectedBrand || selectedCategory || selectedSubcategory
+                ? "text-black/72 hover:text-[#2EB958]"
+                : "bg-[#2EB958] text-black"
+            }`}
+          >
+            Tất cả
+          </Link>
+          {categories.map((category) => {
+            const isActive = selectedCategory === category.id;
+            const categorySubs = subcategories.filter((sub) => sub.categoryId === category.id);
+            return (
+              <div key={category.id} className="group relative shrink-0">
+                <Link
+                  href={`/products?category=${encodeURIComponent(category.id)}#catalog`}
+                  className={`focus-ring flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-black uppercase tracking-[0.1em] whitespace-nowrap transition ${
+                    isActive ? "text-[#2EB958]" : "text-black/72 hover:text-[#2EB958]"
+                  }`}
+                >
+                  {category.name}
+                  {categorySubs.length > 0 ? (
+                    <FontAwesomeIcon icon="chevron-right" className="h-3 w-3 rotate-90 opacity-60" />
+                  ) : null}
+                </Link>
+                {categorySubs.length > 0 ? (
+                  <div className="invisible absolute left-0 top-full z-40 min-w-[240px] -translate-y-1 pt-1 opacity-0 transition group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+                    <div className="rounded-md border border-black/10 bg-white py-2 shadow-xl">
+                      {categorySubs.map((sub) => {
+                        const subActive = selectedSubcategory === sub.id;
+                        return (
+                          <Link
+                            key={sub.id}
+                            href={`/products?category=${encodeURIComponent(category.id)}&subcategory=${encodeURIComponent(sub.id)}#catalog`}
+                            className={`block px-4 py-2 text-sm font-medium transition ${
+                              subActive ? "bg-[#f7f4ec] text-[#2EB958]" : "text-black/72 hover:bg-[#f7f4ec] hover:text-[#2EB958]"
+                            }`}
+                          >
+                            {sub.name}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      </nav>
 
-          <h3 className="mt-8 text-sm font-black uppercase tracking-[0.14em] text-black/55">Nhãn hàng</h3>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {brands.map((brand) => (
-              <FilterChip key={brand.id} label={brand.name} param="brand" value={brand.id} active={selectedBrand === brand.id} />
-            ))}
-          </div>
-
-          <h3 className="mt-8 text-sm font-black uppercase tracking-[0.14em] text-black/55">Khoảng giá</h3>
-          <div className="mt-3 grid gap-2">
-            {priceRanges.map((range) => (
-              <FilterLink
-                key={range.label}
-                label={range.label}
-                param="price"
-                value={slugify(range.label)}
-                active={selectedPrice === slugify(range.label)}
-              />
-            ))}
-          </div>
-        </aside>
-
+      <section id="catalog" className="mx-auto max-w-7xl scroll-mt-[160px] px-4 py-8 md:px-6 md:py-14">
         <div>
-          <div className="flex flex-col gap-4 border-b border-black/10 pb-5 md:flex-row md:items-end md:justify-between">
+          <div className="flex flex-col gap-3 border-b border-black/10 pb-4 md:flex-row md:items-end md:justify-between md:gap-4 md:pb-5">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-[#00684a]">Catalog</p>
-              <h2 className="mt-2 text-4xl font-black">Tất cả sản phẩm</h2>
-              <p className="mt-2 text-sm font-bold text-black/55">{filteredProducts.length} sản phẩm đang hiển thị</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#2EB958] md:text-xs">{eyebrowLabel}</p>
+              <h2 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl md:mt-2 md:text-4xl">{pageTitle}</h2>
+              <p className="mt-1 text-xs font-normal text-black/55 md:mt-2 md:text-sm">
+                {filteredProducts.length} sản phẩm{filteredProducts.length !== productsRaw.length ? ` (lọc từ ${productsRaw.length})` : ""}
+              </p>
             </div>
-            <form action="/products" className="flex w-full min-w-0 gap-2 md:w-auto">
+            <form
+              action="/products"
+              className="group relative w-full min-w-0 md:w-80"
+            >
               <input
                 name="q"
                 defaultValue={query}
                 placeholder="Tìm cơ, ngọn, phụ kiện..."
-                className="min-h-11 min-w-0 flex-1 rounded-lg border border-black/15 bg-white px-4 text-sm font-bold outline-none focus:border-[#00684a] md:w-80"
+                className="min-h-10 w-full min-w-0 rounded-full border border-black/15 bg-white pl-4 pr-24 text-sm font-normal outline-none placeholder:text-black/40 focus:border-[#2EB958] md:min-h-11 md:pr-28"
               />
-              <button className="min-h-11 rounded-lg bg-[#00684a] px-5 text-sm font-black uppercase tracking-[0.12em] text-white">
-                <span className="inline-flex items-center gap-2">
-                  <FontAwesomeIcon icon="magnifying-glass" className="h-4 w-4" />
-                  Tìm
-                </span>
+              <button
+                type="submit"
+                aria-label="Tìm kiếm"
+                className="absolute inset-y-1 right-1 inline-flex items-center gap-1.5 rounded-full bg-[#2EB958] px-3 text-xs font-bold uppercase tracking-[0.12em] text-black transition hover:bg-[#27a04b] md:gap-2 md:px-4 md:text-sm"
+              >
+                <FontAwesomeIcon icon="magnifying-glass" className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                Tìm
               </button>
             </form>
           </div>
 
-          <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
             {filteredProducts.length ? filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} categoryNames={categoryNames} subcategoryNames={subcategoryNames} brandNames={brandNames} />
             )) : (
-              <div className="rounded-lg border border-dashed border-black/20 bg-white p-8 md:col-span-2 xl:col-span-3">
-                <p className="text-2xl font-black">Không tìm thấy sản phẩm phù hợp</p>
-                <p className="mt-3 max-w-xl text-sm leading-6 text-black/58">
+              <div className="col-span-2 rounded-lg border border-dashed border-black/20 bg-white p-8 lg:col-span-3 xl:col-span-4">
+                <p className="text-2xl font-bold">Không tìm thấy sản phẩm phù hợp</p>
+                <p className="mt-3 max-w-xl text-sm font-normal leading-6 text-black/58">
                   Thử bỏ bớt bộ lọc hoặc tìm bằng từ khóa rộng hơn. Đội ngũ 99 Billiards vẫn có thể tư vấn theo ngân sách qua hotline.
                 </p>
                 <Link
                   href="/products"
-                  className="focus-ring mt-6 inline-flex rounded-lg bg-[#00684a] px-5 py-3 text-sm font-black uppercase tracking-[0.12em] text-white"
+                  className="focus-ring mt-6 inline-flex rounded-full bg-[#2EB958] px-5 py-3 text-sm font-bold uppercase tracking-[0.12em] text-black hover:bg-[#27a04b]"
                 >
                   Xóa bộ lọc
                 </Link>
@@ -252,8 +309,8 @@ function ProductCard({
   featured?: boolean;
 }) {
   const category = categoryNames.get(product.categoryId || "") || product.category;
-  const subcategory = subcategoryNames.get(product.subcategoryId || "") || "";
-  const brand = brandNames.get(product.brandId || "") || product.brand || "";
+  void subcategoryNames;
+  void brandNames;
   const discount =
     product.compareAtPrice && product.compareAtPrice > product.price
       ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
@@ -264,65 +321,23 @@ function ProductCard({
       href={`/products/${product.id}`}
       className="group block overflow-hidden rounded-lg border border-black/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-[#e8e0d2]">
-        {product.image ? <Image src={product.image} alt={product.name} fill className="object-cover transition duration-500 group-hover:scale-105" /> : null}
+      <div className="relative aspect-square overflow-hidden bg-[#e8e0d2]">
+        {product.image ? <Image src={product.image} alt={product.name} fill sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" className="object-cover transition duration-500 group-hover:scale-105" /> : null}
         <div className="absolute left-3 top-3 flex gap-2">
-          {featured ? <span className="bg-[#d6ff3f] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.12em] text-black">Nổi bật</span> : null}
-          {discount ? <span className="bg-red-600 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.12em] text-white">-{discount}%</span> : null}
+          {featured ? <span className="rounded-full bg-[#2EB958] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.12em] text-black shadow-sm">Nổi bật</span> : null}
+          {discount ? <span className="rounded-full bg-red-600 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.12em] text-white shadow-sm">-{discount}%</span> : null}
         </div>
       </div>
-      <div className="p-4">
-        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#00684a]">{category}</p>
-        <h3 className="mt-2 min-h-[3.5rem] text-xl font-black leading-tight">{product.name}</h3>
-        {brand || subcategory ? <p className="mt-1 text-sm font-bold text-black/48">{[brand, subcategory].filter(Boolean).join(" / ")}</p> : null}
-        <div className="mt-4 flex items-end justify-between gap-3">
-          <div>
-            <p className="text-2xl font-black text-[#0c3b2d]">{formatCurrency(product.price)}</p>
-            {product.compareAtPrice && product.compareAtPrice > product.price ? (
-              <p className="text-sm font-bold text-black/40 line-through">{formatCurrency(product.compareAtPrice)}</p>
-            ) : null}
-          </div>
-          <span className="shrink-0 rounded-md border border-black/10 px-3 py-2 text-xs font-black uppercase tracking-[0.1em] text-black/55">
-            {product.stockStatus === "out-of-stock" ? "Hết hàng" : product.stockStatus === "preorder" ? "Đặt trước" : "Còn hàng"}
-          </span>
+      <div className="p-2.5 sm:p-4">
+        <p className="hidden text-[11px] font-semibold uppercase tracking-[0.16em] text-[#2EB958] sm:block">{category}</p>
+        <h3 className="line-clamp-2 text-sm font-bold leading-tight tracking-tight text-black sm:mt-2 sm:min-h-[3rem] sm:text-lg sm:leading-snug">{product.name}</h3>
+        <div className="mt-1.5 sm:mt-3">
+          {product.compareAtPrice && product.compareAtPrice > product.price ? (
+            <p className="text-[11px] font-normal text-black/40 line-through sm:text-sm">{formatCurrency(product.compareAtPrice)}</p>
+          ) : null}
+          <p className="text-sm font-black tracking-tight text-[#2EB958] sm:text-2xl">{formatCurrency(product.price)}</p>
         </div>
       </div>
-    </Link>
-  );
-}
-
-function Metric({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="rounded-lg border border-white/10 bg-white/8 p-3">
-      <p className="text-2xl font-black">{value}</p>
-      <p className="mt-1 text-[11px] font-bold uppercase tracking-[0.14em] text-white/48">{label}</p>
-    </div>
-  );
-}
-
-function FilterLink({ label, param, value, active }: { label: string; param: string; value: string; active: boolean }) {
-  const href = value ? `/products?${param}=${encodeURIComponent(value)}` : "/products";
-  return (
-    <Link
-      href={href}
-      className={`block rounded-md border px-3 py-2 text-sm font-bold transition ${
-        active ? "border-[#00684a] bg-[#00684a] text-white" : "border-black/10 bg-[#f7f4ec] text-black/68 hover:border-[#00684a]"
-      }`}
-    >
-      {label}
-    </Link>
-  );
-}
-
-function FilterChip({ label, param, value, active }: { label: string; param: string; value: string; active: boolean }) {
-  return (
-    <Link
-      href={`/products?${param}=${encodeURIComponent(value)}`}
-      className={`rounded-md border px-3 py-2 text-xs font-black uppercase tracking-[0.1em] ${
-        active ? "border-[#00684a] bg-[#00684a] text-white" : "border-black/10 bg-white text-black/62"
-      }`}
-    >
-      {label}
     </Link>
   );
 }
@@ -339,3 +354,4 @@ function slugify(input: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 }
+

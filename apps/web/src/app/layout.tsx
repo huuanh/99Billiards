@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import { getSiteSettings } from "@99billiards/db";
+import { ScrollToTop } from "@/components/scroll-to-top";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -45,6 +46,7 @@ export default async function RootLayout({
           tiktokPixelId={settings.tiktokPixelId}
         />
         {children}
+        <ScrollToTop />
       </body>
     </html>
   );

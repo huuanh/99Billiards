@@ -2,6 +2,7 @@ import type { SVGProps } from "react";
 
 export type FontAwesomeIconName =
   | "arrow-left"
+  | "bars"
   | "cart-shopping"
   | "chevron-left"
   | "chevron-right"
@@ -19,6 +20,10 @@ const icons: Record<FontAwesomeIconName, { viewBox: string; path: string }> = {
   "arrow-left": {
     viewBox: "0 0 448 512",
     path: "M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.2 288H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H109.2L214.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z",
+  },
+  bars: {
+    viewBox: "0 0 448 512",
+    path: "M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z",
   },
   "cart-shopping": {
     viewBox: "0 0 576 512",

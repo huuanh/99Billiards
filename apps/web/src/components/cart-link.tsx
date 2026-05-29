@@ -2,13 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { FontAwesomeIcon } from "@99billiards/ui";
 import { readCart } from "./cart-storage";
 
 function cartQuantity() {
   return readCart().reduce((total, item) => total + item.quantity, 0);
 }
 
+/**
+ * Cart icon — matches Option E ("ISSUE 99") header style:
+ * outlined shopping cart SVG + rectangular neon-green pill with mono digit.
+ */
 export function CartLink({ className = "" }: { className?: string }) {
   const [quantity, setQuantity] = useState(0);
 
@@ -27,11 +30,28 @@ export function CartLink({ className = "" }: { className?: string }) {
   }, []);
 
   return (
-    <Link href="/cart" className={`relative inline-flex items-center gap-2 rounded-full hover:text-[#00684a] ${className}`}>
-      <FontAwesomeIcon icon="cart-shopping" className="h-3.5 w-3.5" />
-      Giỏ hàng
+    <Link
+      href="/cart"
+      aria-label={`Giỏ hàng${quantity ? ` (${quantity} sản phẩm)` : ""}`}
+      className={`items-center gap-2 transition hover:text-[#2EB958] ${className}`}
+    >
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
+        <path d="M3 6h2l2.5 11h11L21 9H6" />
+        <circle cx="9" cy="20" r="1.5" />
+        <circle cx="17" cy="20" r="1.5" />
+      </svg>
       {quantity ? (
-        <span className="ml-1 inline-grid min-w-5 place-items-center rounded-full bg-[#00684a] px-1.5 py-0.5 text-[10px] font-black leading-none text-white">
+        <span className="inline-flex min-w-[20px] items-center justify-center bg-[#2EB958] px-1.5 py-[3px] font-mono text-[10px] font-bold leading-none tracking-tight text-[#0A0E0C]">
           {quantity}
         </span>
       ) : null}

@@ -46,7 +46,7 @@ export default function LoginPage({
             />
           </label>
           <LoginError searchParams={searchParams} />
-          <button className="focus-ring min-h-12 rounded-2xl bg-[#d6ff3f] px-5 py-3 text-sm font-black uppercase tracking-[0.18em] text-black">
+          <button className="focus-ring min-h-12 rounded-2xl bg-[#2EB958] px-5 py-3 text-sm font-black uppercase tracking-[0.18em] text-black">
             Vào admin
           </button>
         </form>

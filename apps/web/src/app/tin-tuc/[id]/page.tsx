@@ -41,10 +41,10 @@ export default async function PostDetailPage({ params }: PageProps) {
     <main className="min-h-screen bg-[#050705] pb-20 text-[#f5f1e8] md:pb-0">
       <PublicHeader active="news" />
       <article className="mx-auto max-w-4xl px-4 py-28 md:px-6">
-        <Link href="/#news" className="text-sm font-black uppercase tracking-[0.2em] text-[#d6ff3f]">
+        <Link href="/#news" className="text-sm font-black uppercase tracking-[0.2em] text-[#2EB958]">
           ← Tin tức
         </Link>
-        <p className="mt-12 text-xs font-black uppercase tracking-[0.25em] text-[#d6ff3f]">
+        <p className="mt-12 text-xs font-black uppercase tracking-[0.25em] text-[#2EB958]">
           {post.category} · {post.publishedAt}
         </p>
         <h1 className="mt-4 text-5xl font-black md:text-7xl">{post.title}</h1>
